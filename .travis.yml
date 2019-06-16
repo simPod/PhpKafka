@@ -1,0 +1,56 @@
+dist: trusty
+language: php
+sudo: required
+
+php:
+    - 7.2
+    - 7.3
+    - 7.4snapshot
+
+env:
+    global:
+        - LIBRDKAFKA_VERSION=v1.0.1
+    matrix:
+        - DEPENDENCIES=--prefer-dist
+        - DEPENDENCIES=--prefer-dist --prefer-lowest
+
+before_install:
+    - docker-compose --file tests/docker-compose.yml up -d
+    - mv ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini{,.disabled} || echo "xdebug not available"
+    - chmod +x .ci/install_rdkafka.sh
+    - .ci/install_rdkafka.sh
+
+install:
+    - travis_retry composer update --prefer-dist
+
+script:
+    - ./vendor/bin/phpunit
+
+jobs:
+    include:
+        -   stage: Test
+            name: Coverage
+            php: 7.2
+            before_script:
+                - mv ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini{.disabled,}
+                - if [[ ! $(php -m | grep -si xdebug) ]]; then echo "xdebug required for coverage"; exit 1; fi
+            script:
+                - ./vendor/bin/phpunit --coverage-clover ./build/logs/clover.xml
+            after_script:
+                - wget https://github.com/scrutinizer-ci/ocular/releases/download/1.5.2/ocular.phar
+                - php ocular.phar code-coverage:upload --format=php-clover build/logs/clover.xml
+
+        -   stage: Code Quality
+            name: Code Style
+            script:
+                - ./vendor/bin/phpcs
+
+        -   stage: Code Quality
+            name: Static Analysis
+            script:
+                - ./vendor/bin/phpstan analyse
+
+cache:
+    directories:
+        - $HOME/.composer/cache
+
