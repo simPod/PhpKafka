@@ -16,6 +16,7 @@ use SimPod\Kafka\Clients\Consumer\Exception\RebalancingFailed;
 use SimPod\Kafka\Common\Exception\Wakeup;
 use function array_map;
 use function pcntl_signal_dispatch;
+use function rd_kafka_err2str;
 use function sprintf;
 use const RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS;
 use const RD_KAFKA_RESP_ERR__PARTITION_EOF;
@@ -35,6 +36,15 @@ final class KafkaConsumer extends RdKafkaConsumer
         $this->logger = $logger ?? new NullLogger();
 
         $this->setupInternalTerminationSignal($config);
+
+        $config->getConf()->setErrorCb(
+            function ($kafka, $err, $reason) : void {
+                $this->logger->error(
+                    sprintf('Kafka error: "%s": "%s"', rd_kafka_err2str($err), $reason),
+                    ['err' => $err]
+                );
+            }
+        );
 
         $config->getConf()->setRebalanceCb(
             function (KafkaConsumer $kafka, int $err, ?array $partitions = null) : void {
