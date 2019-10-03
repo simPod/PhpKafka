@@ -15,13 +15,13 @@
     "require": {
         "php": "^7.2",
         "ext-pcntl": "*",
-        "ext-rdkafka": "*",
+        "ext-rdkafka": "^4.0",
         "psr/log": "^1.1",
         "symfony/polyfill-php73": "^1.11"
     },
     "require-dev": {
         "doctrine/coding-standard": "^6.0",
-        "kwn/php-rdkafka-stubs": "^1.0",
+        "kwn/php-rdkafka-stubs": "^2.0",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "^0.11.8",
         "phpstan/phpstan-phpunit": "^0.11.2",

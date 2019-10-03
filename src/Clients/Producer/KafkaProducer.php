@@ -22,11 +22,4 @@ class KafkaProducer extends Producer
         $topic->produce($record->partition ?? RD_KAFKA_PARTITION_UA, self::RD_KAFKA_MSG_F_COPY, $record->value, $record->key);
         $this->poll(0);
     }
-
-    public function flush() : void
-    {
-        while ($this->getOutQLen() > 0) {
-            $this->poll(1);
-        }
-    }
 }

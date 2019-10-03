@@ -11,4 +11,4 @@ git clone --depth 1 --branch "${LIBRDKAFKA_VERSION}" https://github.com/edenhill
 )
 sudo ldconfig
 
-pecl install rdkafka-3.1.2
+pecl install rdkafka-4.0.0

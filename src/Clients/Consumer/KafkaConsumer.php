@@ -10,16 +10,12 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RdKafka\KafkaConsumer as RdKafkaConsumer;
 use RdKafka\Message;
-use RdKafka\TopicPartition;
 use SimPod\Kafka\Clients\Consumer\Exception\IncompatibleStatus;
 use SimPod\Kafka\Common\Exception\Wakeup;
-use function array_map;
 use function pcntl_signal_dispatch;
 use function rd_kafka_err2str;
 use function sprintf;
-use const RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS;
 use const RD_KAFKA_RESP_ERR__PARTITION_EOF;
-use const RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS;
 use const RD_KAFKA_RESP_ERR__TIMED_OUT;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
@@ -42,40 +38,6 @@ final class KafkaConsumer extends RdKafkaConsumer
                     sprintf('Kafka error: "%s": "%s"', rd_kafka_err2str($err), $reason),
                     ['err' => $err]
                 );
-            }
-        );
-
-        $config->getConf()->setRebalanceCb(
-            function (KafkaConsumer $kafka, int $err, ?array $partitions = null) : void {
-                switch ($err) {
-                    case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
-                        $this->logger->info(
-                            'Assigning partitions',
-                            $partitions === null ? [] : array_map(
-                                static function (TopicPartition $partition) : string {
-                                    return (string) $partition->getPartition();
-                                },
-                                $partitions
-                            )
-                        );
-                        $kafka->assign($partitions);
-                        break;
-                    case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS:
-                        $this->logger->info(
-                            'Revoking partitions',
-                            $partitions === null ? [] : array_map(
-                                static function (TopicPartition $partition) : string {
-                                    return (string) $partition->getPartition();
-                                },
-                                $partitions
-                            )
-                        );
-                        $kafka->assign(null);
-                        break;
-                    default:
-                        $this->logger->error(sprintf('Rebalancing failed: %s (%d)', rd_kafka_err2str($err), $err));
-                        $kafka->assign(null);
-                }
             }
         );
 

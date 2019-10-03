@@ -25,11 +25,6 @@ final class TestProducer
         $this->producer->produce($record);
     }
 
-    public function flush() : void
-    {
-        $this->producer->flush();
-    }
-
     private function getConfig() : ProducerConfig
     {
         $config = new ProducerConfig();
@@ -38,5 +33,10 @@ final class TestProducer
         $config->set(ProducerConfig::ACKS_CONFIG, 'all');
 
         return $config;
+    }
+
+    public function __destruct()
+    {
+        $this->producer->flush(5000);
     }
 }
