@@ -1,6 +1,6 @@
 # PHP Kafka boilerplate wrapper around RdKafka
 
-[![Build Status](https://travis-ci.org/simPod/Kafka.svg)](https://travis-ci.org/simPod/Kafka)
+[![Build Status](https://travis-ci.org/simPod/Kafka.svg?branch=master)](https://travis-ci.org/simPod/Kafka)
 [![Downloads](https://poser.pugx.org/simpod/kafka/d/total.svg)](https://packagist.org/packages/simpod/kafka)
 [![Packagist](https://poser.pugx.org/simpod/kafka/v/stable.svg)](https://packagist.org/packages/simpod/kafka)
 [![Licence](https://poser.pugx.org/simpod/kafka/license.svg)](https://packagist.org/packages/simpod/kafka)

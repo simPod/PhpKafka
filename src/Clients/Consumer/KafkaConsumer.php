@@ -12,7 +12,6 @@ use RdKafka\KafkaConsumer as RdKafkaConsumer;
 use RdKafka\Message;
 use RdKafka\TopicPartition;
 use SimPod\Kafka\Clients\Consumer\Exception\IncompatibleStatus;
-use SimPod\Kafka\Clients\Consumer\Exception\RebalancingFailed;
 use SimPod\Kafka\Common\Exception\Wakeup;
 use function array_map;
 use function pcntl_signal_dispatch;
@@ -74,7 +73,8 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $kafka->assign(null);
                         break;
                     default:
-                        throw RebalancingFailed::new($err);
+                        $this->logger->error(sprintf('Rebalancing failed: %s (%d)', rd_kafka_err2str($err), $err));
+                        $kafka->assign(null);
                 }
             }
         );
