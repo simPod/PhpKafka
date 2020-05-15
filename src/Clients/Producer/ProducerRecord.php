@@ -30,6 +30,7 @@ final class ProducerRecord
         if ($partition < 0) {
             throw new InvalidArgumentException(sprintf('Invalid partition: %d. Partition number should always be non-negative or null.', $partition));
         }
+
         $this->topic     = $topic;
         $this->partition = $partition;
         $this->key       = $key;

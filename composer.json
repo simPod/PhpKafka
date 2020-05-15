@@ -20,7 +20,7 @@
         "symfony/polyfill-php73": "^1.11"
     },
     "require-dev": {
-        "doctrine/coding-standard": "^6.0",
+        "doctrine/coding-standard": "^7.0",
         "kwn/php-rdkafka-stubs": "^1.0",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "0.12.25",

@@ -117,6 +117,7 @@ final class KafkaConsumer extends RdKafkaConsumer
             $remainingTimeout = $timeoutMs;
             $end              = $this->getEnd($timeoutMs);
         }
+
         $consumerRecords = new ConsumerRecords();
 
         $this->doStart(
@@ -184,6 +185,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                         if ($onPartitionEof !== null) {
                             $onPartitionEof();
                         }
+
                         $this->logger->info('No more messages. Will wait for more');
 
                         break;
