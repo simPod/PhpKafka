@@ -23,11 +23,14 @@ final class ConsumerRecordsTest extends TestCase
         self::assertFalse($consumerRecords->isEmpty());
         self::assertCount(1, $consumerRecords);
 
+        $wasCalled = false;
         $consumerRecords->forEach(
-            static function (Message $record) use ($message) : void {
+            static function (Message $record) use ($message, &$wasCalled) : void {
                 self::assertSame($message, $record);
+                $wasCalled = true;
             }
         );
+        self::assertTrue($wasCalled);
 
         self::assertSame($message, $consumerRecords->getLast());
     }

@@ -4,35 +4,30 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Tests\Common;
 
+use Generator;
 use PHPUnit\Framework\TestCase;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 
 final class ConfigTest extends TestCase
 {
-    /** @var ConsumerConfig */
-    private $config;
-
-    public function setUp() : void
+    /**
+     * @param mixed $value
+     * @dataProvider providerSet
+     */
+    public function testSet($value, string $expected) : void
     {
         $config = new ConsumerConfig();
-        $config->set(ConsumerConfig::ENABLE_AUTO_COMMIT_CONFIG, true);
-        $this->config = $config;
+        $config->set(ConsumerConfig::GROUP_ID_CONFIG, $value);
 
-        parent::setUp();
+        self::assertSame($expected, $config->get(ConsumerConfig::GROUP_ID_CONFIG));
     }
 
-    public function testGetInt() : void
+    /** @return Generator<array{mixed, string}> */
+    public function providerSet() : Generator
     {
-        self::assertSame(0, $this->config->getInt(ConsumerConfig::ENABLE_AUTO_COMMIT_CONFIG));
-    }
-
-    public function testGetString() : void
-    {
-        self::assertSame('true', $this->config->getString(ConsumerConfig::ENABLE_AUTO_COMMIT_CONFIG));
-    }
-
-    public function testGetBool() : void
-    {
-        self::assertTrue($this->config->getBool(ConsumerConfig::ENABLE_AUTO_COMMIT_CONFIG));
+        yield [true, 'true'];
+        yield [false, 'false'];
+        yield ['string', 'string'];
+        yield [0, '0'];
     }
 }
