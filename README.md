@@ -6,6 +6,7 @@
 [![Packagist](https://poser.pugx.org/simpod/kafka/v/stable.svg)](https://packagist.org/packages/simpod/kafka)
 [![Licence](https://poser.pugx.org/simpod/kafka/license.svg)](https://packagist.org/packages/simpod/kafka)
 [![GitHub Issues](https://img.shields.io/github/issues/simPod/PhpKafka.svg?style=flat-square)](https://github.com/simPod/PhpKafka/issues)
+[![Type Coverage](https://shepherd.dev/github/simPod/PhpKafka/coverage.svg)](https://shepherd.dev/github/simPod/PhpKafka)
 
 ## Installation
 
