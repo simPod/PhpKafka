@@ -1,11 +1,11 @@
 # PHP Kafka boilerplate wrapper around RdKafka
 
-[![Build Status](https://travis-ci.org/simPod/Kafka.svg?branch=master)](https://travis-ci.org/simPod/Kafka)
+[![Build Status](https://github.com/simPod/PhpKafka/workflows/CI/badge.svg?branch=master)](https://github.com/simPod/PhpKafka/actions)
+[![Coverage Status](https://coveralls.io/repos/github/simPod/PhpKafka/badge.svg?branch=master)](https://coveralls.io/github/simPod/PhpKafka?branch=master)
 [![Downloads](https://poser.pugx.org/simpod/kafka/d/total.svg)](https://packagist.org/packages/simpod/kafka)
 [![Packagist](https://poser.pugx.org/simpod/kafka/v/stable.svg)](https://packagist.org/packages/simpod/kafka)
 [![Licence](https://poser.pugx.org/simpod/kafka/license.svg)](https://packagist.org/packages/simpod/kafka)
-[![Quality Score](https://scrutinizer-ci.com/g/simPod/Kafka/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/simPod/Kafka)
-[![Code Coverage](https://scrutinizer-ci.com/g/simPod/Kafka/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/simPod/Kafka)
+[![GitHub Issues](https://img.shields.io/github/issues/simPod/PhpKafka.svg?style=flat-square)](https://github.com/simPod/PhpKafka/issues)
 
 ## Installation
 

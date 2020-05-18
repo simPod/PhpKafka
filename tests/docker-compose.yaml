@@ -1,7 +1,7 @@
-version: '2'
+version: "3.3"
 services:
     zookeeper:
-        image: confluentinc/cp-zookeeper:5.2.1
+        image: confluentinc/cp-zookeeper:5.3.1
         hostname: zookeeper
         container_name: zookeeper
         environment:
@@ -9,14 +9,11 @@ services:
             ZOOKEEPER_TICK_TIME: 2000
 
     kafka:
-        image: confluentinc/cp-kafka:5.2.1
-        container_name: kafka
+        image: confluentinc/cp-kafka:5.3.1
         ports:
-        - 9092:9092
-        links:
-        - zookeeper
+            - "9092:9092"
         depends_on:
-        - zookeeper
+            - zookeeper
         environment:
             KAFKA_BROKER_ID: 1
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

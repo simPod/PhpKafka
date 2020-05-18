@@ -1,7 +1,5 @@
 #!/bin/sh
 
-echo ${LIBRDKAFKA_VERSION}
-
 git clone --depth 1 --branch "${LIBRDKAFKA_VERSION}" https://github.com/edenhill/librdkafka.git
 (
     cd librdkafka
@@ -10,5 +8,3 @@ git clone --depth 1 --branch "${LIBRDKAFKA_VERSION}" https://github.com/edenhill
     sudo make install
 )
 sudo ldconfig
-
-pecl install rdkafka-3.1.2
