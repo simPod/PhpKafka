@@ -19,6 +19,7 @@ class KafkaProducer extends Producer
     public function produce(ProducerRecord $record) : void
     {
         $topic = $this->newTopic($record->topic);
+        /** @psalm-suppress UndefinedMethod https://github.com/vimeo/psalm/issues/3406 */
         $topic->produce($record->partition ?? RD_KAFKA_PARTITION_UA, self::RD_KAFKA_MSG_F_COPY, $record->value, $record->key);
         $this->poll(0);
     }

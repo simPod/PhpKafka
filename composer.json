@@ -27,7 +27,9 @@
         "phpstan/phpstan-phpunit": "0.12.8",
         "phpstan/phpstan-strict-rules": "0.12.2",
         "phpunit/phpunit": "^9.1",
-        "simpod/php-coveralls-mirror": "^3.0"
+        "psalm/plugin-phpunit": "^0.10.0",
+        "simpod/php-coveralls-mirror": "^3.0",
+        "vimeo/psalm": "dev-master#47cf69d as 3.11.4"
     },
     "suggest": {
         "kwn/php-rdkafka-stubs": "Support and autocompletion for RDKafka in IDE | require as dev dependency"

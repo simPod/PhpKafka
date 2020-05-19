@@ -36,7 +36,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         $this->setupInternalTerminationSignal($config);
 
         $config->getConf()->setErrorCb(
-            function ($kafka, $err, $reason) : void {
+            function (RdKafkaConsumer $kafka, int $err, string $reason) : void {
                 $this->logger->error(
                     sprintf('Kafka error: "%s": "%s"', rd_kafka_err2str($err), $reason),
                     ['err' => $err]
@@ -44,8 +44,9 @@ final class KafkaConsumer extends RdKafkaConsumer
             }
         );
 
-        $config->getConf()->setRebalanceCb(
-            function (KafkaConsumer $kafka, int $err, ?array $partitions = null) : void {
+        $rebalanceCb =
+            /** @param array<string, TopicPartition>|null $partitions */
+            function (RdKafkaConsumer $kafka, int $err, ?array $partitions = null) : void {
                 switch ($err) {
                     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
                         $this->logger->info(
@@ -69,14 +70,14 @@ final class KafkaConsumer extends RdKafkaConsumer
                                 $partitions
                             )
                         );
-                        $kafka->assign(null);
+                        $kafka->assign();
                         break;
                     default:
                         $this->logger->error(sprintf('Rebalancing failed: %s (%d)', rd_kafka_err2str($err), $err));
-                        $kafka->assign(null);
+                        $kafka->assign();
                 }
-            }
-        );
+            };
+        $config->getConf()->setRebalanceCb($rebalanceCb);
 
         parent::__construct($config->getConf());
     }
