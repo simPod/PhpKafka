@@ -9,15 +9,15 @@ use DateTimeImmutable;
 final class BatchTime
 {
     /** @var int */
-    public $endTime;
+    public $endMsTimestamp;
 
-    public function __construct(int $timeoutMs)
+    public function __construct(int $timeoutMs, DateTimeImmutable $now)
     {
-        $this->reset($timeoutMs);
+        $this->reset($timeoutMs, $now);
     }
 
-    public function reset(int $timeoutMs) : void
+    public function reset(int $timeoutMs, DateTimeImmutable $now) : void
     {
-        $this->endTime = (new DateTimeImmutable())->getTimestamp() * 1000 + $timeoutMs;
+        $this->endMsTimestamp = $now->getTimestamp() * 1000 + $timeoutMs;
     }
 }

@@ -37,22 +37,7 @@ abstract class Config
         $this->conf->set($key, $value);
     }
 
-    public function getBool(string $key) : bool
-    {
-        return (bool) $this->get($key);
-    }
-
-    public function getInt(string $key) : int
-    {
-        return (int) $this->get($key);
-    }
-
-    public function getString(string $key) : string
-    {
-        return $this->get($key);
-    }
-
-    private function get(string $key) : string
+    public function get(string $key) : string
     {
         return $this->conf->dump()[$key];
     }

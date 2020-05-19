@@ -21,6 +21,7 @@
     },
     "require-dev": {
         "doctrine/coding-standard": "^7.0",
+        "infection/infection": "^0.16.3",
         "kwn/php-rdkafka-stubs": "^1.0",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "0.12.25",

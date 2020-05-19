@@ -106,7 +106,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         ?callable $processRecord = null,
         ?callable $onBatchProcessed = null
     ) : void {
-        $batchTime       = new BatchTime($timeoutMs);
+        $batchTime       = new BatchTime($timeoutMs, new DateTimeImmutable());
         $consumerRecords = new ConsumerRecords();
 
         $this->doStart(
@@ -130,7 +130,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                     }
 
                     $consumerRecords->clear();
-                    $batchTime->reset($timeoutMs);
+                    $batchTime->reset($timeoutMs, new DateTimeImmutable());
 
                     return;
                 }
@@ -209,7 +209,7 @@ final class KafkaConsumer extends RdKafkaConsumer
             $onBatchProcessed,
             $consumerRecords
         ) : void {
-            $remainingTimeout = $batchTime->endTime - (new DateTimeImmutable())->getTimestamp() * 1000;
+            $remainingTimeout = $batchTime->endMsTimestamp - (new DateTimeImmutable())->getTimestamp() * 1000;
 
             if ($remainingTimeout >= 0) {
                 return;
@@ -220,7 +220,7 @@ final class KafkaConsumer extends RdKafkaConsumer
             }
 
             $consumerRecords->clear();
-            $batchTime->reset($timeoutMs);
+            $batchTime->reset($timeoutMs, new DateTimeImmutable());
         };
     }
 
