@@ -40,6 +40,11 @@ final class ConsumerRecords implements Countable
         return count($this->records) === 0;
     }
 
+    public function clear() : void
+    {
+        $this->records = [];
+    }
+
     public function getLast() : Message
     {
         $lastRecord = $this->records[array_key_last($this->records)] ?? null;

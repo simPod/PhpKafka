@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SimPod\Kafka\Clients\Consumer;
 
 use DateTimeImmutable;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RdKafka\KafkaConsumer as RdKafkaConsumer;
@@ -101,35 +100,23 @@ final class KafkaConsumer extends RdKafkaConsumer
      * @param callable(ConsumerRecords) : void $onBatchProcessed
      */
     public function startBatch(
+        int $maxBatchSize,
+        int $timeoutMs,
         ?callable $processRecord = null,
-        ?callable $onBatchProcessed = null,
-        ?int $maxBatchSize = null,
-        ?int $timeoutMs = null
+        ?callable $onBatchProcessed = null
     ) : void {
-        if ($maxBatchSize === null && ($timeoutMs === null || $timeoutMs <= 0)) {
-            throw new InvalidArgumentException('You have to specify either batch size or/and positive timeout');
-        }
-
-        if ($timeoutMs === null) {
-            $remainingTimeout = $timeoutMs = 1000;
-            $end              = null;
-        } else {
-            $remainingTimeout = $timeoutMs;
-            $end              = $this->getEnd($timeoutMs);
-        }
-
+        $batchTime       = new BatchTime($timeoutMs);
         $consumerRecords = new ConsumerRecords();
 
         $this->doStart(
-            $remainingTimeout,
+            $timeoutMs,
             function (Message $message) use (
                 $maxBatchSize,
                 $timeoutMs,
-                &$remainingTimeout,
-                &$end,
+                $batchTime,
                 $processRecord,
                 $onBatchProcessed,
-                &$consumerRecords
+                $consumerRecords
             ) : void {
                 $consumerRecords->add($message);
                 if ($processRecord !== null) {
@@ -141,19 +128,16 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $onBatchProcessed($consumerRecords);
                     }
 
-                    $consumerRecords  = new ConsumerRecords();
-                    $remainingTimeout = $timeoutMs;
-                    if ($end !== null) {
-                        $end = $this->getEnd($end);
-                    }
+                    $consumerRecords->clear();
+                    $batchTime->reset($timeoutMs);
 
                     return;
                 }
 
-                $this->checkBatchTimedOut($timeoutMs, $remainingTimeout, $end, $onBatchProcessed, $consumerRecords)();
+                $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords)();
             },
-            $this->checkBatchTimedOut($timeoutMs, $remainingTimeout, $end, $onBatchProcessed, $consumerRecords),
-            $this->checkBatchTimedOut($timeoutMs, $remainingTimeout, $end, $onBatchProcessed, $consumerRecords)
+            $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
+            $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords)
         );
     }
 
@@ -163,7 +147,7 @@ final class KafkaConsumer extends RdKafkaConsumer
      * @param callable() : void        $onTimedOut
      */
     private function doStart(
-        int &$timeoutMs,
+        int $timeoutMs,
         callable $onSuccess,
         ?callable $onPartitionEof = null,
         ?callable $onTimedOut = null
@@ -214,23 +198,17 @@ final class KafkaConsumer extends RdKafkaConsumer
      */
     private function checkBatchTimedOut(
         int $timeoutMs,
-        int &$remainingTimeout,
-        ?int &$end,
+        BatchTime $batchTime,
         ?callable $onBatchProcessed,
-        ConsumerRecords &$consumerRecords
+        ConsumerRecords $consumerRecords
     ) : callable {
-        return function () use (
+        return static function () use (
             $timeoutMs,
-            &$remainingTimeout,
-            &$end,
+            $batchTime,
             $onBatchProcessed,
-            &$consumerRecords
+            $consumerRecords
         ) : void {
-            if ($end === null) {
-                return;
-            }
-
-            $remainingTimeout = $end - (new DateTimeImmutable())->getTimestamp() * 1000;
+            $remainingTimeout = $batchTime->endTime - (new DateTimeImmutable())->getTimestamp() * 1000;
 
             if ($remainingTimeout >= 0) {
                 return;
@@ -240,9 +218,8 @@ final class KafkaConsumer extends RdKafkaConsumer
                 $onBatchProcessed($consumerRecords);
             }
 
-            $consumerRecords  = new ConsumerRecords();
-            $remainingTimeout = $timeoutMs;
-            $end              = $this->getEnd($timeoutMs);
+            $consumerRecords->clear();
+            $batchTime->reset($timeoutMs);
         };
     }
 
@@ -251,10 +228,5 @@ final class KafkaConsumer extends RdKafkaConsumer
         $this->logger->info('Shutting down');
 
         throw new Wakeup();
-    }
-
-    private function getEnd(int $timeoutMs) : int
-    {
-        return (new DateTimeImmutable())->getTimestamp() * 1000 + $timeoutMs;
     }
 }

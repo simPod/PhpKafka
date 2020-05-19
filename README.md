@@ -25,57 +25,10 @@ However, they are copied from Java API and not all are applicable to librdkafka.
 
 ### Consumer
 
-`KafkaConsumer` boilerplate is available with `startBatch()` method ([(to suplement this example in librdkafka)](https://github.com/edenhill/librdkafka/blob/master/examples/rdkafka_consume_batch.cpp#L97)) and with `start()`. 
+`KafkaConsumer` boilerplate is available with `startBatch()` method ([to suplement this example in librdkafka](https://github.com/edenhill/librdkafka/blob/master/examples/rdkafka_consume_batch.cpp#L97)) and with `start()`. 
 They also handle termination signals for you.
 
-```php
-<?php
-
-declare(strict_types=1);
-
-namespace Your\AppNamespace;
-
-use RdKafka\Message;
-use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
-use SimPod\Kafka\Clients\Consumer\ConsumerRecords;
-use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
-
-final class ExampleBatchConsumer
-{
-    public function run() : void
-    {
-        $kafkaConsumer = new KafkaConsumer($this->getConfig());
-
-        $kafkaConsumer->subscribe(['topic1']);
-
-        $kafkaConsumer->startBatch(
-            static function (Message $message) : void {
-                // Process record
-            },
-            static function (ConsumerRecords $consumerRecords) use ($kafkaConsumer) : void {
-                // Process records batch
-    
-                $kafkaConsumer->commit($consumerRecords->getLast());
-            },
-            200000, 
-            120 * 1000
-        );
-    }
-
-    private function getConfig() : ConsumerConfig
-    {
-        $config = new ConsumerConfig();
-
-        $config->set(ConsumerConfig::BOOTSTRAP_SERVERS_CONFIG, '127.0.0.1:9092');
-        $config->set(ConsumerConfig::ENABLE_AUTO_COMMIT_CONFIG, false);
-        $config->set(ConsumerConfig::CLIENT_ID_CONFIG, gethostname());
-        $config->set(ConsumerConfig::AUTO_OFFSET_RESET_CONFIG, 'earliest');
-        $config->set(ConsumerConfig::GROUP_ID_CONFIG, 'consumer_group_name');
-
-        return $config;
-    }
-}
-```
+#### Classic Consumer
 
 ```php
 <?php
@@ -121,6 +74,53 @@ final class ExampleConsumer
 }
 ```
 
-### Development
+#### Batching Consumer
 
-There is `kwn/php-rdkafka-stubs` listed as a dev dependency so it properly integrates php-rdkafka extension with IDE.
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Your\AppNamespace;
+
+use RdKafka\Message;
+use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
+use SimPod\Kafka\Clients\Consumer\ConsumerRecords;
+use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
+
+final class ExampleBatchConsumer
+{
+    public function run() : void
+    {
+        $kafkaConsumer = new KafkaConsumer($this->getConfig());
+
+        $kafkaConsumer->subscribe(['topic1']);
+
+        $kafkaConsumer->startBatch(
+            200000, 
+            120 * 1000,
+            static function (Message $message) : void {
+                // Process record
+            },
+            static function (ConsumerRecords $consumerRecords) use ($kafkaConsumer) : void {
+                // Process records batch
+    
+                $kafkaConsumer->commit($consumerRecords->getLast());
+            }
+        );
+    }
+
+    private function getConfig() : ConsumerConfig
+    {
+        $config = new ConsumerConfig();
+
+        $config->set(ConsumerConfig::BOOTSTRAP_SERVERS_CONFIG, '127.0.0.1:9092');
+        $config->set(ConsumerConfig::ENABLE_AUTO_COMMIT_CONFIG, false);
+        $config->set(ConsumerConfig::CLIENT_ID_CONFIG, gethostname());
+        $config->set(ConsumerConfig::AUTO_OFFSET_RESET_CONFIG, 'earliest');
+        $config->set(ConsumerConfig::GROUP_ID_CONFIG, 'consumer_group_name');
+
+        return $config;
+    }
+}
+```

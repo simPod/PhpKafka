@@ -21,29 +21,6 @@ final class KafkaBatchConsumerTest extends TestCase
     public function testMaxBatchSize() : void
     {
         $testProducer = new TestProducer();
-        for ($i = 0; $i < 90; $i++) {
-            $testProducer->run(self::PAYLOAD);
-        }
-
-        $consumer = new KafkaConsumer($this->getConfig());
-        $consumer->subscribe([self::TOPIC]);
-
-        $consumer->startBatch(
-            static function (Message $message) : void {
-                self::assertSame(self::PAYLOAD, $message->payload);
-            },
-            static function (ConsumerRecords $consumerRecords) use ($consumer) : void {
-                self::assertCount(90, $consumerRecords);
-
-                $consumer->shutdown();
-            },
-            90
-        );
-    }
-
-    public function testTimeout() : void
-    {
-        $testProducer = new TestProducer();
         for ($i = 0; $i < 100; $i++) {
             $testProducer->run(self::PAYLOAD);
         }
@@ -51,22 +28,17 @@ final class KafkaBatchConsumerTest extends TestCase
         $consumer = new KafkaConsumer($this->getConfig());
         $consumer->subscribe([self::TOPIC]);
 
-        $start = microtime(true);
         $consumer->startBatch(
+            90,
+            10000,
             static function (Message $message) : void {
+                self::assertSame(self::PAYLOAD, $message->payload);
             },
-            static function (ConsumerRecords $consumerRecords) use ($consumer, $start) : void {
-                $end = microtime(true);
-
-                self::assertGreaterThanOrEqual(10, $end - $start);
-                self::assertLessThan(12, $end - $start);
-
-                self::assertGreaterThan(0, $consumerRecords->count());
+            static function (ConsumerRecords $consumerRecords) use ($consumer) : void {
+                self::assertCount(90, $consumerRecords);
 
                 $consumer->shutdown();
-            },
-            null,
-            10000
+            }
         );
     }
 
