@@ -15,17 +15,13 @@ final class ProducerRecord
     /** @var int|null */
     public $partition;
 
-    /** @var mixed */
-    public $key;
-
-    /** @var mixed */
+    /** @var string */
     public $value;
 
-    /**
-     * @param mixed $key
-     * @param mixed $value
-     */
-    public function __construct(string $topic, ?int $partition, $key, $value)
+    /** @var string|null */
+    public $key;
+
+    public function __construct(string $topic, ?int $partition, string $value, ?string $key = null)
     {
         if ($partition < 0) {
             throw new InvalidArgumentException(sprintf('Invalid partition: %d. Partition number should always be non-negative or null.', $partition));

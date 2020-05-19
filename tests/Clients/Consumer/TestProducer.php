@@ -21,7 +21,7 @@ final class TestProducer
 
     public function run(string $payload) : void
     {
-        $record = new ProducerRecord(KafkaBatchConsumerTest::TOPIC, null, null, $payload);
+        $record = new ProducerRecord(KafkaBatchConsumerTest::TOPIC, null, $payload);
         $this->producer->produce($record);
     }
 
