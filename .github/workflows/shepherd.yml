@@ -27,7 +27,7 @@ jobs:
           php-version: 7.3
           coverage: none
           tools: pecl
-          extensions: json, mbstring, rdkafka-3.1.2
+          extensions: json, mbstring, rdkafka
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest

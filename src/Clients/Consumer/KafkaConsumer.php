@@ -44,7 +44,7 @@ final class KafkaConsumer extends RdKafkaConsumer
             }
         );
 
-        $rebalanceCb =
+        $rebalanceCallback =
             /** @param array<string, TopicPartition>|null $partitions */
             function (RdKafkaConsumer $kafka, int $err, ?array $partitions = null) : void {
                 switch ($err) {
@@ -77,7 +77,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $kafka->assign();
                 }
             };
-        $config->getConf()->setRebalanceCb($rebalanceCb);
+        $config->getConf()->setRebalanceCb($rebalanceCallback);
 
         parent::__construct($config->getConf());
     }
