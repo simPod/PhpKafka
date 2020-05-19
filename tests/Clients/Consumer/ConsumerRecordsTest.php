@@ -39,4 +39,15 @@ final class ConsumerRecordsTest extends TestCase
         $consumerRecords = new ConsumerRecords();
         $consumerRecords->getLast();
     }
+
+    public function testClear() : void
+    {
+        $consumerRecords = new ConsumerRecords();
+
+        $consumerRecords->add(new Message());
+        self::assertCount(1, $consumerRecords);
+
+        $consumerRecords->clear();
+        self::assertCount(0, $consumerRecords);
+    }
 }
