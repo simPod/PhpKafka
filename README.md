@@ -4,7 +4,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/simPod/PhpKafka/badge.svg?branch=master)](https://coveralls.io/github/simPod/PhpKafka?branch=master)
 [![Downloads](https://poser.pugx.org/simpod/kafka/d/total.svg)](https://packagist.org/packages/simpod/kafka)
 [![Packagist](https://poser.pugx.org/simpod/kafka/v/stable.svg)](https://packagist.org/packages/simpod/kafka)
-[![Licence](https://poser.pugx.org/simpod/kafka/license.svg)](https://packagist.org/packages/simpod/kafka)
 [![GitHub Issues](https://img.shields.io/github/issues/simPod/PhpKafka.svg?style=flat-square)](https://github.com/simPod/PhpKafka/issues)
 [![Type Coverage](https://shepherd.dev/github/simPod/PhpKafka/coverage.svg)](https://shepherd.dev/github/simPod/PhpKafka)
 [![Infection MSI](https://badge.stryker-mutator.io/github.com/simPod/PhpKafka/master)](https://infection.github.io)
