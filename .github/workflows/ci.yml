@@ -31,7 +31,7 @@ jobs:
           php-version: 7.3
           coverage: none
           tools: pecl
-          extensions: json, mbstring, rdkafka-3.1.2
+          extensions: json, mbstring, rdkafka
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -68,7 +68,7 @@ jobs:
           php-version: 7.3
           coverage: none
           tools: pecl
-          extensions: json, mbstring, rdkafka-3.1.2
+          extensions: json, mbstring, rdkafka
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -110,7 +110,7 @@ jobs:
           php-version: 7.3
           coverage: pcov
           tools: pecl
-          extensions: json, mbstring, rdkafka-3.1.2
+          extensions: json, mbstring, rdkafka
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        php: [7.3]
+        php: [7.3, 7.4]
         env: [
           'DEPENDENCIES=--prefer-lowest',
           '',
@@ -164,7 +164,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: pecl
-          extensions: json, mbstring, rdkafka-3.1.2
+          extensions: json, mbstring, rdkafka
 
       - name: Get Composer Cache Directory
         id: composer-cache
