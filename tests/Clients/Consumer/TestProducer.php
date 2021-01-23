@@ -6,29 +6,29 @@ namespace SimPod\Kafka\Tests\Clients\Consumer;
 
 use SimPod\Kafka\Clients\Producer\KafkaProducer;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
-use function gethostname;
+
+use function Safe\gethostname;
 
 final class TestProducer
 {
-    /** @var KafkaProducer */
-    private $producer;
+    private KafkaProducer $producer;
 
     public function __construct()
     {
         $this->producer = new KafkaProducer(
             $this->getConfig(),
-            static function (KafkaProducer $producer) : void {
+            static function (KafkaProducer $producer): void {
                 $producer->flushMessages(5000);
             }
         );
     }
 
-    public function run(string $payload) : void
+    public function run(string $payload): void
     {
         $this->producer->produce(KafkaBatchConsumerTest::TOPIC, null, $payload);
     }
 
-    private function getConfig() : ProducerConfig
+    private function getConfig(): ProducerConfig
     {
         $config = new ProducerConfig();
         $config->set(ProducerConfig::CLIENT_ID_CONFIG, gethostname());

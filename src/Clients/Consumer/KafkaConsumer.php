@@ -12,10 +12,12 @@ use RdKafka\Message;
 use RdKafka\TopicPartition;
 use SimPod\Kafka\Clients\Consumer\Exception\IncompatibleStatus;
 use SimPod\Kafka\Common\Exception\Wakeup;
+
 use function array_map;
-use function pcntl_signal_dispatch;
 use function rd_kafka_err2str;
-use function sprintf;
+use function Safe\pcntl_signal_dispatch;
+use function Safe\sprintf;
+
 use const RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS;
 use const RD_KAFKA_RESP_ERR__PARTITION_EOF;
 use const RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS;
@@ -26,8 +28,7 @@ final class KafkaConsumer extends RdKafkaConsumer
 {
     use WithSignalControl;
 
-    /** @var LoggerInterface */
-    private $logger;
+    private LoggerInterface $logger;
 
     public function __construct(ConsumerConfig $config, ?LoggerInterface $logger = null)
     {
@@ -36,7 +37,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         $this->setupInternalTerminationSignal($config);
 
         $config->getConf()->setErrorCb(
-            function (RdKafkaConsumer $kafka, int $err, string $reason) : void {
+            function (RdKafkaConsumer $kafka, int $err, string $reason): void {
                 $this->logger->error(
                     sprintf('Kafka error: "%s": "%s"', rd_kafka_err2str($err), $reason),
                     ['err' => $err]
@@ -46,13 +47,13 @@ final class KafkaConsumer extends RdKafkaConsumer
 
         $rebalanceCallback =
             /** @param array<string, TopicPartition>|null $partitions */
-            function (RdKafkaConsumer $kafka, int $err, ?array $partitions = null) : void {
+            function (RdKafkaConsumer $kafka, int $err, ?array $partitions = null): void {
                 switch ($err) {
                     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
                         $this->logger->info(
                             'Assigning partitions',
                             $partitions === null ? [] : array_map(
-                                static function (TopicPartition $partition) : string {
+                                static function (TopicPartition $partition): string {
                                     return (string) $partition->getPartition();
                                 },
                                 $partitions
@@ -64,7 +65,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $this->logger->info(
                             'Revoking partitions',
                             $partitions === null ? [] : array_map(
-                                static function (TopicPartition $partition) : string {
+                                static function (TopicPartition $partition): string {
                                     return (string) $partition->getPartition();
                                 },
                                 $partitions
@@ -92,7 +93,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable $onSuccess,
         ?callable $onPartitionEof = null,
         ?callable $onTimedOut = null
-    ) : void {
+    ): void {
         $this->doStart($timeoutMs, $onSuccess, $onPartitionEof, $onTimedOut);
     }
 
@@ -105,7 +106,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         int $timeoutMs,
         ?callable $processRecord = null,
         ?callable $onBatchProcessed = null
-    ) : void {
+    ): void {
         $batchTime       = new BatchTime($timeoutMs, new DateTimeImmutable());
         $consumerRecords = new ConsumerRecords();
 
@@ -118,7 +119,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                 $processRecord,
                 $onBatchProcessed,
                 $consumerRecords
-            ) : void {
+            ): void {
                 $consumerRecords->add($message);
                 if ($processRecord !== null) {
                     $processRecord($message);
@@ -152,7 +153,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable $onSuccess,
         ?callable $onPartitionEof = null,
         ?callable $onTimedOut = null
-    ) : void {
+    ): void {
         $this->registerSignals();
 
         try {
@@ -202,13 +203,13 @@ final class KafkaConsumer extends RdKafkaConsumer
         BatchTime $batchTime,
         ?callable $onBatchProcessed,
         ConsumerRecords $consumerRecords
-    ) : callable {
+    ): callable {
         return static function () use (
             $timeoutMs,
             $batchTime,
             $onBatchProcessed,
             $consumerRecords
-        ) : void {
+        ): void {
             $remainingTimeout = $batchTime->endMsTimestamp - (new DateTimeImmutable())->getTimestamp() * 1000;
 
             if ($remainingTimeout >= 0) {
@@ -224,7 +225,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         };
     }
 
-    public function shutdown() : void
+    public function shutdown(): void
     {
         $this->logger->info('Shutting down');
 

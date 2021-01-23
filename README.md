@@ -1,12 +1,11 @@
 # PHP Kafka boilerplate wrapper around RdKafka
 
-[![Build Status](https://github.com/simPod/PhpKafka/workflows/CI/badge.svg?branch=master)](https://github.com/simPod/PhpKafka/actions)
-[![Coverage Status](https://coveralls.io/repos/github/simPod/PhpKafka/badge.svg?branch=master)](https://coveralls.io/github/simPod/PhpKafka?branch=master)
-[![Downloads](https://poser.pugx.org/simpod/kafka/d/total.svg)](https://packagist.org/packages/simpod/kafka)
-[![Packagist](https://poser.pugx.org/simpod/kafka/v/stable.svg)](https://packagist.org/packages/simpod/kafka)
-[![GitHub Issues](https://img.shields.io/github/issues/simPod/PhpKafka.svg?style=flat-square)](https://github.com/simPod/PhpKafka/issues)
-[![Type Coverage](https://shepherd.dev/github/simPod/PhpKafka/coverage.svg)](https://shepherd.dev/github/simPod/PhpKafka)
-[![Infection MSI](https://badge.stryker-mutator.io/github.com/simPod/PhpKafka/master)](https://infection.github.io)
+[![GitHub Actions][GA Image]][GA Link]
+[![Shepherd Type][Shepherd Image]][Shepherd Link]
+[![Code Coverage][Coverage Image]][CodeCov Link]
+[![Downloads][Downloads Image]][Packagist Link]
+[![Packagist][Packagist Image]][Packagist Link]
+[![Infection MSI][Infection Image]][Infection Link]
 
 ## Installation
 
@@ -125,3 +124,25 @@ final class ExampleBatchConsumer
     }
 }
 ```
+
+[GA Image]: https://github.com/simPod/PhpKafka/workflows/CI/badge.svg
+
+[GA Link]: https://github.com/simPod/PhpKafka/actions?query=workflow%3A%22CI%22+branch%3Amaster
+
+[Shepherd Image]: https://shepherd.dev/github/simPod/PhpKafka/coverage.svg
+
+[Shepherd Link]: https://shepherd.dev/github/simPod/PhpKafka
+
+[Coverage Image]: https://codecov.io/gh/simPod/PhpKafka/branch/master/graph/badge.svg
+
+[CodeCov Link]: https://codecov.io/gh/simPod/PhpKafka/branch/master
+
+[Downloads Image]: https://poser.pugx.org/simpod/kafka/d/total.svg
+
+[Packagist Image]: https://poser.pugx.org/simpod/kafka/v/stable.svg
+
+[Packagist Link]: https://packagist.org/packages/simpod/kafka
+
+[Infection Image]: https://badge.stryker-mutator.io/github.com/simPod/PhpKafka/master
+
+[Infection Link]: https://infection.github.io

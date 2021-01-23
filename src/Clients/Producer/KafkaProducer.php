@@ -8,7 +8,9 @@ use InvalidArgumentException;
 use RdKafka\Producer;
 use RdKafka\ProducerTopic;
 use RuntimeException;
-use function sprintf;
+
+use function Safe\sprintf;
+
 use const RD_KAFKA_PARTITION_UA;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
@@ -44,7 +46,7 @@ class KafkaProducer extends Producer
         ?string $key = null,
         ?array $headers = null,
         ?int $timestampMs = null
-    ) : void {
+    ): void {
         if ($partition < 0) {
             throw new InvalidArgumentException(
                 sprintf('Invalid partition: %d. Partition number should always be non-negative or null.', $partition)
@@ -64,7 +66,7 @@ class KafkaProducer extends Producer
         $this->poll(0);
     }
 
-    public function flushMessages(int $timeoutMs = 10000) : void
+    public function flushMessages(int $timeoutMs = 10000): void
     {
         $result = null;
         for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {

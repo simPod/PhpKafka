@@ -1,0 +1,7 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Parameter \\#6 \\$timestamp_ms of method RdKafka\\\\ProducerTopic\\:\\:producev\\(\\) expects int, int\\|null given\\.$#"
+			count: 1
+			path: src/Clients/Producer/KafkaProducer.php
+

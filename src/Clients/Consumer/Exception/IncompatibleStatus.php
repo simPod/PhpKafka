@@ -6,11 +6,12 @@ namespace SimPod\Kafka\Clients\Consumer\Exception;
 
 use RdKafka\Message;
 use SimPod\Kafka\Common\Exception\KafkaException;
-use function sprintf;
+
+use function Safe\sprintf;
 
 final class IncompatibleStatus extends KafkaException
 {
-    public static function fromMessage(Message $message) : self
+    public static function fromMessage(Message $message): self
     {
         return new self(
             sprintf(

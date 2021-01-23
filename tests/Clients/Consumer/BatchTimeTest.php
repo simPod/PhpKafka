@@ -10,9 +10,9 @@ use SimPod\Kafka\Clients\Consumer\BatchTime;
 
 final class BatchTimeTest extends TestCase
 {
-    public function testReset() : void
+    public function testReset(): void
     {
-        $moment = new DateTimeImmutable('2020-01-01 00:00:00');
+        $moment    = new DateTimeImmutable('2020-01-01 00:00:00');
         $batchTime = new BatchTime(1, $moment);
 
         $batchTime->reset(2, $moment);

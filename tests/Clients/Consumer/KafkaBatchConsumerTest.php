@@ -9,16 +9,16 @@ use RdKafka\Message;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 use SimPod\Kafka\Clients\Consumer\ConsumerRecords;
 use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
-use function gethostname;
-use function microtime;
+
 use function mt_rand;
+use function Safe\gethostname;
 
 final class KafkaBatchConsumerTest extends TestCase
 {
     public const PAYLOAD = 'Tasty, chilled pudding is best flavored with juicy lime.';
     public const TOPIC   = 'kafka-batch-consumer';
 
-    public function testMaxBatchSize() : void
+    public function testMaxBatchSize(): void
     {
         $testProducer = new TestProducer();
         for ($i = 0; $i < 100; $i++) {
@@ -31,10 +31,10 @@ final class KafkaBatchConsumerTest extends TestCase
         $consumer->startBatch(
             90,
             10000,
-            static function (Message $message) : void {
+            static function (Message $message): void {
                 self::assertSame(self::PAYLOAD, $message->payload);
             },
-            static function (ConsumerRecords $consumerRecords) use ($consumer) : void {
+            static function (ConsumerRecords $consumerRecords) use ($consumer): void {
                 self::assertCount(90, $consumerRecords);
 
                 $consumer->shutdown();
@@ -42,7 +42,7 @@ final class KafkaBatchConsumerTest extends TestCase
         );
     }
 
-    private function getConfig() : ConsumerConfig
+    private function getConfig(): ConsumerConfig
     {
         $consumerConfig = new ConsumerConfig();
         $consumerConfig->set(ConsumerConfig::BOOTSTRAP_SERVERS_CONFIG, '127.0.0.1:9092');

@@ -12,9 +12,10 @@ final class ConfigTest extends TestCase
 {
     /**
      * @param mixed $value
+     *
      * @dataProvider providerSet
      */
-    public function testSet($value, string $expected) : void
+    public function testSet($value, string $expected): void
     {
         $config = new ConsumerConfig();
         $config->set(ConsumerConfig::GROUP_ID_CONFIG, $value);
@@ -23,7 +24,7 @@ final class ConfigTest extends TestCase
     }
 
     /** @return Generator<array{mixed, string}> */
-    public function providerSet() : Generator
+    public function providerSet(): Generator
     {
         yield [true, 'true'];
         yield [false, 'false'];

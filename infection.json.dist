@@ -1,5 +1,5 @@
 {
-    "bootstrap":"./tests/bootstrap.php",
+    "bootstrap": "./tests/bootstrap.php",
     "timeout": 10,
     "source": {
         "directories": [

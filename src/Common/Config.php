@@ -8,15 +8,14 @@ use RdKafka\Conf;
 
 abstract class Config
 {
-    /** @var Conf */
-    private $conf;
+    private Conf $conf;
 
     public function __construct()
     {
         $this->conf = new Conf();
     }
 
-    public function getConf() : Conf
+    public function getConf(): Conf
     {
         return $this->conf;
     }
@@ -24,7 +23,7 @@ abstract class Config
     /**
      * @param string|int|bool $value
      */
-    public function set(string $key, $value) : void
+    public function set(string $key, $value): void
     {
         if ($value === true) {
             $value = 'true';
@@ -37,7 +36,7 @@ abstract class Config
         $this->conf->set($key, $value);
     }
 
-    public function get(string $key) : string
+    public function get(string $key): string
     {
         return $this->conf->dump()[$key];
     }

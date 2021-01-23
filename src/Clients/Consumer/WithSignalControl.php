@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace SimPod\Kafka\Clients\Consumer;
 
 use SimPod\Kafka\Common\Exception\Wakeup;
+
 use function pcntl_signal;
-use function pcntl_sigprocmask;
+use function Safe\pcntl_sigprocmask;
+
 use const SIG_BLOCK;
 use const SIG_DFL;
 use const SIG_UNBLOCK;
@@ -17,14 +19,14 @@ use const SIGTERM;
 
 trait WithSignalControl
 {
-    private function setupInternalTerminationSignal(ConsumerConfig $config) : void
+    private function setupInternalTerminationSignal(ConsumerConfig $config): void
     {
         $config->set('internal.termination.signal', SIGIO);
     }
 
-    private function registerSignals() : void
+    private function registerSignals(): void
     {
-        $terminationCallback = static function () : void {
+        $terminationCallback = static function (): void {
             throw new Wakeup();
         };
 
@@ -34,7 +36,7 @@ trait WithSignalControl
         pcntl_sigprocmask(SIG_BLOCK, [SIGIO]);
     }
 
-    private function degisterSignals() : void
+    private function degisterSignals(): void
     {
         pcntl_signal(SIGTERM, SIG_DFL);
         pcntl_signal(SIGINT, SIG_DFL);

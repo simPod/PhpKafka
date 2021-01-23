@@ -11,7 +11,7 @@ use SimPod\Kafka\Clients\Consumer\Exception\RecordNotFound;
 
 final class ConsumerRecordsTest extends TestCase
 {
-    public function testAdd() : void
+    public function testAdd(): void
     {
         $consumerRecords = new ConsumerRecords();
         self::assertTrue($consumerRecords->isEmpty());
@@ -25,7 +25,7 @@ final class ConsumerRecordsTest extends TestCase
 
         $wasCalled = false;
         $consumerRecords->forEach(
-            static function (Message $record) use ($message, &$wasCalled) : void {
+            static function (Message $record) use ($message, &$wasCalled): void {
                 self::assertSame($message, $record);
                 $wasCalled = true;
             }
@@ -35,7 +35,7 @@ final class ConsumerRecordsTest extends TestCase
         self::assertSame($message, $consumerRecords->getLast());
     }
 
-    public function testCannotGetLastRecordWhenEmpty() : void
+    public function testCannotGetLastRecordWhenEmpty(): void
     {
         $this->expectException(RecordNotFound::class);
 
@@ -43,7 +43,7 @@ final class ConsumerRecordsTest extends TestCase
         $consumerRecords->getLast();
     }
 
-    public function testClear() : void
+    public function testClear(): void
     {
         $consumerRecords = new ConsumerRecords();
 

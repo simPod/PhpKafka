@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+set -eux
 
 git clone --depth 1 --branch "${LIBRDKAFKA_VERSION}" https://github.com/edenhill/librdkafka.git
 (
