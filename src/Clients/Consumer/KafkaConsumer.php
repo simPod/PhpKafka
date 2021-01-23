@@ -11,7 +11,6 @@ use RdKafka\KafkaConsumer as RdKafkaConsumer;
 use RdKafka\Message;
 use RdKafka\TopicPartition;
 use SimPod\Kafka\Clients\Consumer\Exception\IncompatibleStatus;
-use SimPod\Kafka\Common\Exception\Wakeup;
 
 use function array_map;
 use function rd_kafka_err2str;
@@ -29,6 +28,8 @@ final class KafkaConsumer extends RdKafkaConsumer
     use WithSignalControl;
 
     private LoggerInterface $logger;
+
+    private bool $shouldRun = true;
 
     public function __construct(ConsumerConfig $config, ?LoggerInterface $logger = null)
     {
@@ -144,9 +145,9 @@ final class KafkaConsumer extends RdKafkaConsumer
     }
 
     /**
-     * @param callable(Message) : void $onSuccess
-     * @param callable() : void        $onPartitionEof
-     * @param callable() : void        $onTimedOut
+     * @param callable(Message): void $onSuccess
+     * @param callable() : void       $onPartitionEof
+     * @param callable() : void       $onTimedOut
      */
     private function doStart(
         int $timeoutMs,
@@ -154,40 +155,37 @@ final class KafkaConsumer extends RdKafkaConsumer
         ?callable $onPartitionEof = null,
         ?callable $onTimedOut = null
     ): void {
-        $this->registerSignals();
+        $this->registerSignals($this->shouldRun);
 
-        try {
-            while (true) {
-                pcntl_signal_dispatch();
+        while ($this->shouldRun) {
+            $message = $this->consume($timeoutMs);
 
-                $message = $this->consume($timeoutMs);
+            switch ($message->err) {
+                case RD_KAFKA_RESP_ERR_NO_ERROR:
+                    $onSuccess($message);
 
-                switch ($message->err) {
-                    case RD_KAFKA_RESP_ERR_NO_ERROR:
-                        $onSuccess($message);
+                    break;
+                case RD_KAFKA_RESP_ERR__PARTITION_EOF:
+                    if ($onPartitionEof !== null) {
+                        $onPartitionEof();
+                    }
 
-                        break;
-                    case RD_KAFKA_RESP_ERR__PARTITION_EOF:
-                        if ($onPartitionEof !== null) {
-                            $onPartitionEof();
-                        }
+                    $this->logger->info('No more messages. Will wait for more');
 
-                        $this->logger->info('No more messages. Will wait for more');
+                    break;
+                case RD_KAFKA_RESP_ERR__TIMED_OUT:
+                    $this->logger->info(sprintf('Timed out with timeout %d ms', $timeoutMs));
+                    if ($onTimedOut !== null) {
+                        $onTimedOut();
+                    }
 
-                        break;
-                    case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                        $this->logger->info(sprintf('Timed out with timeout %d ms', $timeoutMs));
-                        if ($onTimedOut !== null) {
-                            $onTimedOut();
-                        }
-
-                        break;
-                    default:
-                        $exception = IncompatibleStatus::fromMessage($message);
-                        $this->logger->error($exception->getMessage(), ['exception' => $exception]);
-                }
+                    break;
+                default:
+                    $exception = IncompatibleStatus::fromMessage($message);
+                    $this->logger->error($exception->getMessage(), ['exception' => $exception]);
             }
-        } catch (Wakeup $wakeup) {
+
+            pcntl_signal_dispatch();
         }
 
         $this->degisterSignals();
@@ -229,6 +227,6 @@ final class KafkaConsumer extends RdKafkaConsumer
     {
         $this->logger->info('Shutting down');
 
-        throw new Wakeup();
+        $this->shouldRun = false;
     }
 }
