@@ -17,7 +17,7 @@ composer require simpod/kafka
 
 ## Config Constants
 
-Some config constants are provided like `ConsumerConfig`, `ProducerConfig` or `CommonClientConfigs`. 
+Some config constants are provided like `ConsumerConfig`, `ProducerConfig` or `CommonClientConfigs`.
 
 However, they are copied from Java API and not all are applicable to librdkafka. Consult with librdkafka documentation before use.
 
@@ -25,8 +25,8 @@ However, they are copied from Java API and not all are applicable to librdkafka.
 
 ### Consumer
 
-`KafkaConsumer` boilerplate is available with `startBatch()` method ([to suplement this example in librdkafka](https://github.com/edenhill/librdkafka/blob/master/examples/rdkafka_consume_batch.cpp#L97)) and with `start()`. 
-They also handle termination signals for you.
+`KafkaConsumer` boilerplate is available with `startBatch()` method ([to suplement this example in librdkafka](https://github.com/edenhill/librdkafka/blob/master/examples/rdkafka_consume_batch.cpp#L97)) and with `start()`. They also handle
+termination signals for you.
 
 #### Classic Consumer
 
@@ -43,7 +43,7 @@ use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
 
 final class ExampleConsumer
 {
-    public function run() : void
+    public function run(): void
     {
         $kafkaConsumer = new KafkaConsumer($this->getConfig(), Logger::get());
 
@@ -59,7 +59,7 @@ final class ExampleConsumer
         );
     }
 
-    private function getConfig() : ConsumerConfig
+    private function getConfig(): ConsumerConfig
     {
         $config = new ConsumerConfig();
 
@@ -90,7 +90,7 @@ use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
 
 final class ExampleBatchConsumer
 {
-    public function run() : void
+    public function run(): void
     {
         $kafkaConsumer = new KafkaConsumer($this->getConfig());
 
@@ -99,7 +99,7 @@ final class ExampleBatchConsumer
         $kafkaConsumer->startBatch(
             200000, 
             120 * 1000,
-            static function (Message $message) : void {
+            static function (Message $message): void {
                 // Process record
             },
             static function (ConsumerRecords $consumerRecords) use ($kafkaConsumer) : void {
@@ -110,7 +110,7 @@ final class ExampleBatchConsumer
         );
     }
 
-    private function getConfig() : ConsumerConfig
+    private function getConfig(): ConsumerConfig
     {
         $config = new ConsumerConfig();
 
