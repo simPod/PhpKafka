@@ -7,7 +7,7 @@ on:
       - "master"
 
 env:
-  LIBRDKAFKA_VERSION: v1.4.2
+  LIBRDKAFKA_VERSION: v1.7.0
 
 jobs:
   Infection:
