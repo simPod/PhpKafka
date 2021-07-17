@@ -51,7 +51,7 @@ final class KafkaConsumer extends RdKafkaConsumer
             function (RdKafkaConsumer $kafka, int $err, ?array $partitions = null): void {
                 switch ($err) {
                     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
-                        $this->logger->info(
+                        $this->logger->debug(
                             'Assigning partitions',
                             $partitions === null ? [] : array_map(
                                 static function (TopicPartition $partition): string {
@@ -63,7 +63,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $kafka->assign($partitions);
                         break;
                     case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS:
-                        $this->logger->info(
+                        $this->logger->debug(
                             'Revoking partitions',
                             $partitions === null ? [] : array_map(
                                 static function (TopicPartition $partition): string {
@@ -170,11 +170,11 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $onPartitionEof();
                     }
 
-                    $this->logger->info('No more messages. Will wait for more');
+                    $this->logger->debug('No more messages. Will wait for more');
 
                     break;
                 case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                    $this->logger->info(sprintf('Timed out with timeout %d ms', $timeoutMs));
+                    $this->logger->debug(sprintf('Timed out with timeout %d ms', $timeoutMs));
                     if ($onTimedOut !== null) {
                         $onTimedOut();
                     }
@@ -225,7 +225,7 @@ final class KafkaConsumer extends RdKafkaConsumer
 
     public function shutdown(): void
     {
-        $this->logger->info('Shutting down');
+        $this->logger->debug('Shutting down');
 
         $this->shouldRun = false;
     }
