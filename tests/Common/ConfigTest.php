@@ -11,11 +11,9 @@ use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 final class ConfigTest extends TestCase
 {
     /**
-     * @param mixed $value
-     *
      * @dataProvider providerSet
      */
-    public function testSet($value, string $expected): void
+    public function testSet(bool|int|string $value, string $expected): void
     {
         $config = new ConsumerConfig();
         $config->set(ConsumerConfig::GROUP_ID_CONFIG, $value);
