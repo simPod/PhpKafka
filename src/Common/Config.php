@@ -20,10 +20,7 @@ abstract class Config
         return $this->conf;
     }
 
-    /**
-     * @param string|int|bool $value
-     */
-    public function set(string $key, $value): void
+    public function set(string $key, string|int|bool $value): void
     {
         if ($value === true) {
             $value = 'true';
