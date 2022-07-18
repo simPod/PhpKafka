@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Clients\Consumer;
 
-use function pcntl_signal;
+use function Safe\pcntl_signal;
 use function Safe\pcntl_sigprocmask;
 
 use const SIG_BLOCK;
