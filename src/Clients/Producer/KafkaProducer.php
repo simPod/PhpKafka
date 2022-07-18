@@ -9,7 +9,7 @@ use RdKafka\Producer;
 use RdKafka\ProducerTopic;
 use RuntimeException;
 
-use function Safe\sprintf;
+use function sprintf;
 
 use const RD_KAFKA_PARTITION_UA;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;

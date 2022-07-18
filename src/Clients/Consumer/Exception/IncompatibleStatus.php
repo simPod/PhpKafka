@@ -7,7 +7,7 @@ namespace SimPod\Kafka\Clients\Consumer\Exception;
 use RdKafka\Message;
 use SimPod\Kafka\Common\Exception\KafkaException;
 
-use function Safe\sprintf;
+use function sprintf;
 
 final class IncompatibleStatus extends KafkaException
 {
