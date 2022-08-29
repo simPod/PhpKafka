@@ -18,7 +18,7 @@ final class IncompatibleStatusTest extends TestCase
 
         self::assertSame(
             'Consumer status "1" is not handled: Broker: Offset out of range',
-            $exception->getMessage()
+            $exception->getMessage(),
         );
     }
 }

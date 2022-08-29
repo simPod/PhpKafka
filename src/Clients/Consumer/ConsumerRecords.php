@@ -21,9 +21,7 @@ final class ConsumerRecords implements Countable
         $this->records[] = $record;
     }
 
-    /**
-     * @param callable(Message $record) : void $action
-     */
+    /** @param callable(Message $record) : void $action */
     public function forEach(callable $action): void
     {
         foreach ($this->records as $record) {

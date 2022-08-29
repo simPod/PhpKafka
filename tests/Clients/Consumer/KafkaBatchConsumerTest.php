@@ -38,7 +38,7 @@ final class KafkaBatchConsumerTest extends TestCase
                 self::assertCount(90, $consumerRecords);
 
                 $consumer->shutdown();
-            }
+            },
         );
     }
 

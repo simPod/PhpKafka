@@ -19,7 +19,7 @@ final class TestProducer
             $this->getConfig(),
             static function (KafkaProducer $producer): void {
                 $producer->flushMessages(5000);
-            }
+            },
         );
     }
 

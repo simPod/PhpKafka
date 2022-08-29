@@ -17,8 +17,8 @@ final class IncompatibleStatus extends KafkaException
             sprintf(
                 'Consumer status "%d" is not handled: %s',
                 $message->err,
-                $message->errstr()
-            )
+                $message->errstr(),
+            ),
         );
     }
 }

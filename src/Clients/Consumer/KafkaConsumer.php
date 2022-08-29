@@ -41,9 +41,9 @@ final class KafkaConsumer extends RdKafkaConsumer
             function (RdKafkaConsumer $kafka, int $err, string $reason): void {
                 $this->logger->error(
                     sprintf('Kafka error: "%s": "%s"', rd_kafka_err2str($err), $reason),
-                    ['err' => $err]
+                    ['err' => $err],
                 );
-            }
+            },
         );
 
         $rebalanceCallback =
@@ -57,8 +57,8 @@ final class KafkaConsumer extends RdKafkaConsumer
                                 static function (TopicPartition $partition): string {
                                     return (string) $partition->getPartition();
                                 },
-                                $partitions
-                            )
+                                $partitions,
+                            ),
                         );
                         $kafka->assign($partitions);
                         break;
@@ -69,8 +69,8 @@ final class KafkaConsumer extends RdKafkaConsumer
                                 static function (TopicPartition $partition): string {
                                     return (string) $partition->getPartition();
                                 },
-                                $partitions
-                            )
+                                $partitions,
+                            ),
                         );
                         $kafka->assign();
                         break;
@@ -140,7 +140,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                 $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords)();
             },
             $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
-            $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords)
+            $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
         );
     }
 
