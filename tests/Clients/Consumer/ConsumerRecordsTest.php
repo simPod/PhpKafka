@@ -28,7 +28,7 @@ final class ConsumerRecordsTest extends TestCase
             static function (Message $record) use ($message, &$wasCalled): void {
                 self::assertSame($message, $record);
                 $wasCalled = true;
-            }
+            },
         );
         self::assertTrue($wasCalled);
 

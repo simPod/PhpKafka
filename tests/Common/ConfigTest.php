@@ -10,9 +10,7 @@ use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 
 final class ConfigTest extends TestCase
 {
-    /**
-     * @dataProvider providerSet
-     */
+    /** @dataProvider providerSet */
     public function testSet(bool|int|string $value, string $expected): void
     {
         $config = new ConsumerConfig();

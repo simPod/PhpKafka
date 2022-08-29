@@ -19,15 +19,18 @@ final class ConsumerConfig extends Config
      */
     public const  GROUP_ID_CONFIG = 'group.id';
     private const GROUP_ID_DOC    = 'A unique string that identifies the consumer group this consumer belongs to. This property is required if the consumer uses either the group management functionality by using <code>subscribe(topic)</code> or the Kafka-based offset management strategy.';
+
     /** <code>max.poll.records</code> */
     public const  MAX_POLL_RECORDS_CONFIG = 'max.poll.records';
     private const MAX_POLL_RECORDS_DOC    = 'The maximum number of records returned in a single call to poll().';
+
     /** <code>max.poll.interval.ms</code> */
     public const  MAX_POLL_INTERVAL_MS_CONFIG = 'max.poll.interval.ms';
     private const MAX_POLL_INTERVAL_MS_DOC    = 'The maximum delay between invocations of poll() when using ' .
     'consumer group management. This places an upper bound on the amount of time that the consumer can be idle ' .
     'before fetching more records. If poll() is not called before expiration of this timeout, then the consumer ' .
     'is considered failed and the group will rebalance in order to reassign the partitions to another member. ';
+
     /**
      * <code>session.timeout.ms</code>
      */
@@ -38,6 +41,7 @@ final class ConsumerConfig extends Config
     'then the broker will remove this consumer from the group and initiate a rebalance. Note that the value ' .
     'must be in the allowable range as configured in the broker configuration by <code>group.min.session.timeout.ms</code> ' .
     'and <code>group.max.session.timeout.ms</code>.';
+
     /**
      * <code>heartbeat.interval.ms</code>
      */
@@ -47,37 +51,45 @@ final class ConsumerConfig extends Config
     "consumer's session stays active and to facilitate rebalancing when new consumers join or leave the group. " .
     'The value must be set lower than <code>session.timeout.ms</code>, but typically should be set no higher ' .
     'than 1/3 of that value. It can be adjusted even lower to control the expected time for normal rebalances.';
+
     /**
      * <code>bootstrap.servers</code>
      */
     public const BOOTSTRAP_SERVERS_CONFIG = CommonClientConfigs::BOOTSTRAP_SERVERS_CONFIG;
+
     /** <code>client.dns.lookup</code> */
     public const CLIENT_DNS_LOOKUP_CONFIG = CommonClientConfigs::CLIENT_DNS_LOOKUP_CONFIG;
+
     /**
      * <code>enable.auto.commit</code>
      */
     public const  ENABLE_AUTO_COMMIT_CONFIG = 'enable.auto.commit';
     private const ENABLE_AUTO_COMMIT_DOC    = "If true the consumer's offset will be periodically committed in the background.";
+
     /**
      * <code>auto.commit.interval.ms</code>
      */
     public const  AUTO_COMMIT_INTERVAL_MS_CONFIG = 'auto.commit.interval.ms';
     private const AUTO_COMMIT_INTERVAL_MS_DOC    = 'The frequency in milliseconds that the consumer offsets are auto-committed to Kafka if <code>enable.auto.commit</code> is set to <code>true</code>.';
+
     /**
      * <code>partition.assignment.strategy</code>
      */
     public const  PARTITION_ASSIGNMENT_STRATEGY_CONFIG = 'partition.assignment.strategy';
     private const PARTITION_ASSIGNMENT_STRATEGY_DOC    = 'The class name of the partition assignment strategy that the client will use to distribute partition ownership amongst consumer instances when group management is used';
+
     /**
      * <code>auto.offset.reset</code>
      */
     public const AUTO_OFFSET_RESET_CONFIG = 'auto.offset.reset';
     public const AUTO_OFFSET_RESET_DOC    = "What to do when there is no initial offset in Kafka or if the current offset does not exist any more on the server (e.g. because that data has been deleted): <ul><li>earliest: automatically reset the offset to the earliest offset<li>latest: automatically reset the offset to the latest offset</li><li>none: throw exception to the consumer if no previous offset is found for the consumer's group</li><li>anything else: throw exception to the consumer.</li></ul>";
+
     /**
      * <code>fetch.min.bytes</code>
      */
     public const  FETCH_MIN_BYTES_CONFIG = 'fetch.min.bytes';
     private const FETCH_MIN_BYTES_DOC    = 'The minimum amount of data the server should return for a fetch request. If insufficient data is available the request will wait for that much data to accumulate before answering the request. The default setting of 1 byte means that fetch requests are answered as soon as a single byte of data is available or the fetch request times out waiting for data to arrive. Setting this to something greater than 1 will cause the server to wait for larger amounts of data to accumulate which can improve server throughput a bit at the cost of some additional latency.';
+
     /**
      * <code>fetch.max.bytes</code>
      */
@@ -88,13 +100,16 @@ final class ConsumerConfig extends Config
     'The maximum record batch size accepted by the broker is defined via <code>message.max.bytes</code> (broker config) or ' .
     '<code>max.message.bytes</code> (topic config). Note that the consumer performs multiple fetches in parallel.';
     public const  DEFAULT_FETCH_MAX_BYTES = 50 * 1024 * 1024;
+
     /**
      * <code>fetch.max.wait.ms</code>
      */
     public const  FETCH_MAX_WAIT_MS_CONFIG = 'fetch.max.wait.ms';
     private const FETCH_MAX_WAIT_MS_DOC    = "The maximum amount of time the server will block before answering the fetch request if there isn't sufficient data to immediately satisfy the requirement given by fetch.min.bytes.";
+
     /** <code>metadata.max.age.ms</code> */
     public const METADATA_MAX_AGE_CONFIG = CommonClientConfigs::METADATA_MAX_AGE_CONFIG;
+
     /**
      * <code>max.partition.fetch.bytes</code>
      */
@@ -106,71 +121,90 @@ final class ConsumerConfig extends Config
     'accepted by the broker is defined via <code>message.max.bytes</code> (broker config) or ' .
     '<code>max.message.bytes</code> (topic config). See ' . self::FETCH_MAX_BYTES_CONFIG . ' for limiting the consumer request size.';
     public const  DEFAULT_MAX_PARTITION_FETCH_BYTES = 1 * 1024 * 1024;
+
     /** <code>send.buffer.bytes</code> */
     public const SEND_BUFFER_CONFIG = CommonClientConfigs::SEND_BUFFER_CONFIG;
+
     /** <code>receive.buffer.bytes</code> */
     public const RECEIVE_BUFFER_CONFIG = CommonClientConfigs::RECEIVE_BUFFER_CONFIG;
+
     /**
      * <code>client.id</code>
      */
     public const CLIENT_ID_CONFIG = CommonClientConfigs::CLIENT_ID_CONFIG;
+
     /**
      * <code>reconnect.backoff.ms</code>
      */
     public const RECONNECT_BACKOFF_MS_CONFIG = CommonClientConfigs::RECONNECT_BACKOFF_MS_CONFIG;
+
     /**
      * <code>reconnect.backoff.max.ms</code>
      */
     public const RECONNECT_BACKOFF_MAX_MS_CONFIG = CommonClientConfigs::RECONNECT_BACKOFF_MAX_MS_CONFIG;
+
     /**
      * <code>retry.backoff.ms</code>
      */
     public const RETRY_BACKOFF_MS_CONFIG = CommonClientConfigs::RETRY_BACKOFF_MS_CONFIG;
+
     /**
      * <code>metrics.sample.window.ms</code>
      */
     public const METRICS_SAMPLE_WINDOW_MS_CONFIG = CommonClientConfigs::METRICS_SAMPLE_WINDOW_MS_CONFIG;
+
     /**
      * <code>metrics.num.samples</code>
      */
     public const METRICS_NUM_SAMPLES_CONFIG = CommonClientConfigs::METRICS_NUM_SAMPLES_CONFIG;
+
     /**
      * <code>metrics.log.level</code>
      */
     public const METRICS_RECORDING_LEVEL_CONFIG = CommonClientConfigs::METRICS_RECORDING_LEVEL_CONFIG;
+
     /**
      * <code>metric.reporters</code>
      */
     public const METRIC_REPORTER_CLASSES_CONFIG = CommonClientConfigs::METRIC_REPORTER_CLASSES_CONFIG;
+
     /**
      * <code>check.crcs</code>
      */
     public const  CHECK_CRCS_CONFIG = 'check.crcs';
     private const CHECK_CRCS_DOC    = 'Automatically check the CRC32 of the records consumed. This ensures no on-the-wire or on-disk corruption to the messages occurred. This check adds some overhead, so it may be disabled in cases seeking extreme performance.';
+
     /** <code>key.deserializer</code> */
     public const KEY_DESERIALIZER_CLASS_CONFIG = 'key.deserializer';
     public const KEY_DESERIALIZER_CLASS_DOC    = 'Deserializer class for key that implements the <code>org.apache.kafka.common.serialization.Deserializer</code> interface.';
+
     /** <code>value.deserializer</code> */
     public const VALUE_DESERIALIZER_CLASS_CONFIG = 'value.deserializer';
     public const VALUE_DESERIALIZER_CLASS_DOC    = 'Deserializer class for value that implements the <code>org.apache.kafka.common.serialization.Deserializer</code> interface.';
+
     /** <code>connections.max.idle.ms</code> */
     public const CONNECTIONS_MAX_IDLE_MS_CONFIG = CommonClientConfigs::CONNECTIONS_MAX_IDLE_MS_CONFIG;
+
     /** <code>request.timeout.ms</code> */
     public const  REQUEST_TIMEOUT_MS_CONFIG = CommonClientConfigs::REQUEST_TIMEOUT_MS_CONFIG;
     private const REQUEST_TIMEOUT_MS_DOC    = CommonClientConfigs::REQUEST_TIMEOUT_MS_DOC;
+
     /** <code>default.api.timeout.ms</code> */
     public const DEFAULT_API_TIMEOUT_MS_CONFIG = 'default.api.timeout.ms';
     public const DEFAULT_API_TIMEOUT_MS_DOC    = 'Specifies the timeout (in milliseconds) for consumer APIs that could block. This configuration is used as the default timeout for all consumer operations that do not explicitly accept a <code>timeout</code> parameter.';
+
     /** <code>interceptor.classes</code> */
     public const INTERCEPTOR_CLASSES_CONFIG = 'interceptor.classes';
     public const INTERCEPTOR_CLASSES_DOC    = 'A list of classes to use as interceptors. '
     . 'Implementing the <code>org.apache.kafka.clients.consumer.ConsumerInterceptor</code> interface allows you to intercept (and possibly mutate) records '
     . 'received by the consumer. By default, there are no interceptors.';
+
     /** <code>exclude.internal.topics</code> */
     public const  EXCLUDE_INTERNAL_TOPICS_CONFIG  = 'exclude.internal.topics';
     private const EXCLUDE_INTERNAL_TOPICS_DOC     = 'Whether records from internal topics (such as offsets) should be exposed to the consumer. '
     . 'If set to <code>true</code> the only way to receive records from an internal topic is subscribing to it.';
     public const  DEFAULT_EXCLUDE_INTERNAL_TOPICS = true;
+
     /**
      * <code>internal.leave.group.on.close</code>
      * Whether or not the consumer should leave the group on close. If set to <code>false</code> then a rebalance
@@ -180,6 +214,7 @@ final class ConsumerConfig extends Config
      * Note: this is an internal configuration and could be changed in the future in a backward incompatible way
      */
     public const LEAVE_GROUP_ON_CLOSE_CONFIG = 'internal.leave.group.on.close';
+
     /** <code>isolation.level</code> */
     public const ISOLATION_LEVEL_CONFIG = 'isolation.level';
     public const ISOLATION_LEVEL_DOC    = '<p>Controls how to read messages written transactionally. If set to <code>read_committed</code>, consumer.poll() will only return' .

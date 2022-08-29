@@ -49,7 +49,7 @@ class KafkaProducer extends Producer
     ): void {
         if ($partition < 0) {
             throw new InvalidArgumentException(
-                sprintf('Invalid partition: %d. Partition number should always be non-negative or null.', $partition)
+                sprintf('Invalid partition: %d. Partition number should always be non-negative or null.', $partition),
             );
         }
 
@@ -61,7 +61,7 @@ class KafkaProducer extends Producer
             $value,
             $key,
             $headers,
-            $timestampMs
+            $timestampMs,
         );
         $this->poll(0);
     }

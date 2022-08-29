@@ -17,11 +17,14 @@ final class ProducerConfig extends Config
 {
     /** <code>bootstrap.servers</code> */
     public const BOOTSTRAP_SERVERS_CONFIG = CommonClientConfigs::BOOTSTRAP_SERVERS_CONFIG;
+
     /** <code>client.dns.lookup</code> */
     public const CLIENT_DNS_LOOKUP_CONFIG = CommonClientConfigs::CLIENT_DNS_LOOKUP_CONFIG;
+
     /** <code>metadata.max.age.ms</code> */
     public const  METADATA_MAX_AGE_CONFIG = CommonClientConfigs::METADATA_MAX_AGE_CONFIG;
     private const METADATA_MAX_AGE_DOC    = CommonClientConfigs::METADATA_MAX_AGE_DOC;
+
     /** <code>batch.size</code> */
     public const  BATCH_SIZE_CONFIG = 'batch.size';
     private const BATCH_SIZE_DOC    = 'The producer will attempt to batch records together into fewer requests whenever multiple records are being sent'
@@ -35,6 +38,7 @@ final class ProducerConfig extends Config
     . 'A small batch size will make batching less common and may reduce throughput (a batch size of zero will disable '
     . 'batching entirely). A very large batch size may use memory a bit more wastefully as we will always allocate a '
     . 'buffer of the specified batch size in anticipation of additional records.';
+
     /** <code>acks</code> */
     public const  ACKS_CONFIG = 'acks';
     private const ACKS_DOC    = 'The number of acknowledgments the producer requires the leader to have received before considering a request complete. This controls the '
@@ -51,6 +55,7 @@ final class ProducerConfig extends Config
     . ' <li><code>acks=all</code> This means the leader will wait for the full set of in-sync replicas to'
     . ' acknowledge the record. This guarantees that the record will not be lost as long as at least one in-sync replica'
     . ' remains alive. This is the strongest available guarantee. This is equivalent to the acks=-1 setting.';
+
     /** <code>linger.ms</code> */
     public const  LINGER_MS_CONFIG = 'linger.ms';
     private const LINGER_MS_DOC    = 'The producer groups together any records that arrive in between request transmissions into a single batched request. '
@@ -63,11 +68,13 @@ final class ProducerConfig extends Config
     . "setting, however if we have fewer than this many bytes accumulated for this partition we will 'linger' for the "
     . 'specified time waiting for more records to show up. This setting defaults to 0 (i.e. no delay). Setting <code>' . self::LINGER_MS_CONFIG . '=5</code>, '
     . 'for example, would have the effect of reducing the number of requests sent but would add up to 5ms of latency to records sent in the absence of load.';
+
     /** <code>request.timeout.ms</code> */
     public const  REQUEST_TIMEOUT_MS_CONFIG = CommonClientConfigs::REQUEST_TIMEOUT_MS_CONFIG;
     private const REQUEST_TIMEOUT_MS_DOC    = CommonClientConfigs::REQUEST_TIMEOUT_MS_DOC
     . ' This should be larger than <code>replica.lag.time.max.ms</code> (a broker configuration)'
     . ' to reduce the possibility of message duplication due to unnecessary producer retries.';
+
     /** <code>delivery.timeout.ms</code> */
     public const  DELIVERY_TIMEOUT_MS_CONFIG = 'delivery.timeout.ms';
     private const DELIVERY_TIMEOUT_MS_DOC    = 'An upper bound on the time to report success or failure '
@@ -78,27 +85,35 @@ final class ProducerConfig extends Config
     . 'or the record is added to a batch which reached an earlier delivery expiration deadline. '
     . 'The value of this config should be greater than or equal to the sum of <code>' . self::REQUEST_TIMEOUT_MS_CONFIG . '</code> '
     . 'and <code>' . self::LINGER_MS_CONFIG . '</code>.';
+
     /** <code>client.id</code> */
     public const CLIENT_ID_CONFIG = CommonClientConfigs::CLIENT_ID_CONFIG;
+
     /** <code>send.buffer.bytes</code> */
     public const SEND_BUFFER_CONFIG = CommonClientConfigs::SEND_BUFFER_CONFIG;
+
     /** <code>receive.buffer.bytes</code> */
     public const RECEIVE_BUFFER_CONFIG = CommonClientConfigs::RECEIVE_BUFFER_CONFIG;
+
     /** <code>max.request.size</code> */
     public const  MAX_REQUEST_SIZE_CONFIG = 'max.request.size';
     private const MAX_REQUEST_SIZE_DOC    = 'The maximum size of a request in bytes. This setting will limit the number of record '
     . 'batches the producer will send in a single request to avoid sending huge requests. '
     . 'This is also effectively a cap on the maximum record batch size. Note that the server '
     . 'has its own cap on record batch size which may be different from this.';
+
     /** <code>reconnect.backoff.ms</code> */
     public const RECONNECT_BACKOFF_MS_CONFIG = CommonClientConfigs::RECONNECT_BACKOFF_MS_CONFIG;
+
     /** <code>reconnect.backoff.max.ms</code> */
     public const RECONNECT_BACKOFF_MAX_MS_CONFIG = CommonClientConfigs::RECONNECT_BACKOFF_MAX_MS_CONFIG;
+
     /** <code>max.block.ms</code> */
     public const  MAX_BLOCK_MS_CONFIG = 'max.block.ms';
     private const MAX_BLOCK_MS_DOC    = 'The configuration controls how long <code>KafkaProducer.send()</code> and <code>KafkaProducer.partitionsFor()</code> will block.'
     . 'These methods can be blocked either because the buffer is full or metadata unavailable.'
     . 'Blocking in the user-supplied serializers or partitioner will not be counted against this timeout.';
+
     /** <code>buffer.memory</code> */
     public const  BUFFER_MEMORY_CONFIG = 'buffer.memory';
     private const BUFFER_MEMORY_DOC    = 'The total bytes of memory the producer can use to buffer records waiting to be sent to the server. If records are '
@@ -107,28 +122,36 @@ final class ProducerConfig extends Config
     . 'This setting should correspond roughly to the total memory the producer will use, but is not a hard bound since '
     . 'not all memory the producer uses is used for buffering. Some additional memory will be used for compression (if '
     . 'compression is enabled) as well as for maintaining in-flight requests.';
+
     /** <code>retry.backoff.ms</code> */
     public const RETRY_BACKOFF_MS_CONFIG = CommonClientConfigs::RETRY_BACKOFF_MS_CONFIG;
+
     /** <code>compression.type</code> */
     public const  COMPRESSION_TYPE_CONFIG = 'compression.type';
     private const COMPRESSION_TYPE_DOC    = 'The compression type for all data generated by the producer. The default is none (i.e. no compression). Valid '
     . ' values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or <code>zstd</code>. '
     . 'Compression is of full batches of data, so the efficacy of batching will also impact the compression ratio (more batching means better compression).';
+
     /** <code>metrics.sample.window.ms</code> */
     public const METRICS_SAMPLE_WINDOW_MS_CONFIG = CommonClientConfigs::METRICS_SAMPLE_WINDOW_MS_CONFIG;
+
     /** <code>metrics.num.samples</code> */
     public const METRICS_NUM_SAMPLES_CONFIG = CommonClientConfigs::METRICS_NUM_SAMPLES_CONFIG;
+
     /**
      * <code>metrics.recording.level</code>
      */
     public const METRICS_RECORDING_LEVEL_CONFIG = CommonClientConfigs::METRICS_RECORDING_LEVEL_CONFIG;
+
     /** <code>metric.reporters</code> */
     public const METRIC_REPORTER_CLASSES_CONFIG = CommonClientConfigs::METRIC_REPORTER_CLASSES_CONFIG;
+
     /** <code>max.in.flight.requests.per.connection</code> */
     public const  MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION     = 'max.in.flight.requests.per.connection';
     private const MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_DOC = 'The maximum number of unacknowledged requests the client will send on a single connection before blocking.'
     . ' Note that if this setting is set to be greater than 1 and there are failed sends, there is a risk of'
     . ' message re-ordering due to retries (i.e., if retries are enabled).';
+
     /** <code>retries</code> */
     public const  RETRIES_CONFIG = CommonClientConfigs::RETRIES_CONFIG;
     private const RETRIES_DOC    = 'Setting a value greater than zero will cause the client to resend any record whose send fails with a potentially transient error.'
@@ -140,22 +163,28 @@ final class ProducerConfig extends Config
     . ' <code>' . self::DELIVERY_TIMEOUT_MS_CONFIG . '</code> expires first before successful acknowledgement. Users should generally'
     . ' prefer to leave this config unset and instead use <code>' . self::DELIVERY_TIMEOUT_MS_CONFIG . '</code> to control'
     . ' retry behavior.';
+
     /** <code>key.serializer</code> */
     public const KEY_SERIALIZER_CLASS_CONFIG = 'key.serializer';
     public const KEY_SERIALIZER_CLASS_DOC    = 'Serializer class for key that implements the <code>org.apache.kafka.common.serialization.Serializer</code> interface.';
+
     /** <code>value.serializer</code> */
     public const VALUE_SERIALIZER_CLASS_CONFIG = 'value.serializer';
     public const VALUE_SERIALIZER_CLASS_DOC    = 'Serializer class for value that implements the <code>org.apache.kafka.common.serialization.Serializer</code> interface.';
+
     /** <code>connections.max.idle.ms</code> */
     public const CONNECTIONS_MAX_IDLE_MS_CONFIG = CommonClientConfigs::CONNECTIONS_MAX_IDLE_MS_CONFIG;
+
     /** <code>partitioner.class</code> */
     public const  PARTITIONER_CLASS_CONFIG = 'partitioner.class';
     private const PARTITIONER_CLASS_DOC    = 'Partitioner class that implements the <code>org.apache.kafka.clients.producer.Partitioner</code> interface.';
+
     /** <code>interceptor.classes</code> */
     public const INTERCEPTOR_CLASSES_CONFIG = 'interceptor.classes';
     public const INTERCEPTOR_CLASSES_DOC    = 'A list of classes to use as interceptors. '
     . 'Implementing the <code>org.apache.kafka.clients.producer.ProducerInterceptor</code> interface allows you to intercept (and possibly mutate) the records '
     . 'received by the producer before they are published to the Kafka cluster. By default, there are no interceptors.';
+
     /** <code>enable.idempotence</code> */
     public const ENABLE_IDEMPOTENCE_CONFIG = 'enable.idempotence';
     public const ENABLE_IDEMPOTENCE_DOC    = "When set to 'true', the producer will ensure that exactly one copy of each message is written in the stream. If 'false', producer "
@@ -164,10 +193,12 @@ final class ProducerConfig extends Config
     . '<code>' . self::RETRIES_CONFIG . '</code> to be greater than 0 and <code>' . self::ACKS_CONFIG . "</code> must be 'all'. If these values "
     . 'are not explicitly set by the user, suitable values will be chosen. If incompatible values are set, '
     . 'a <code>ConfigException</code> will be thrown.';
+
     /** <code> transaction.timeout.ms </code> */
     public const TRANSACTION_TIMEOUT_CONFIG = 'transaction.timeout.ms';
     public const TRANSACTION_TIMEOUT_DOC    = 'The maximum amount of time in ms that the transaction coordinator will wait for a transaction status update from the producer before proactively aborting the ongoing transaction.' .
     'If this value is larger than the transaction.max.timeout.ms setting in the broker, the request will fail with a <code>InvalidTransactionTimeout</code> error.';
+
     /** <code> transactional.id </code> */
     public const TRANSACTIONAL_ID_CONFIG = 'transactional.id';
     public const TRANSACTIONAL_ID_DOC    = 'The TransactionalId to use for transactional delivery. This enables reliability semantics which span multiple producer sessions since it allows the client to guarantee that transactions using the same TransactionalId have been completed prior to starting any new transactions. If no TransactionalId is provided, then the producer is limited to idempotent delivery. ' .
