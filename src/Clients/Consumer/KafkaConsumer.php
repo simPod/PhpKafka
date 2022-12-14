@@ -31,7 +31,7 @@ final class KafkaConsumer extends RdKafkaConsumer
 
     private bool $shouldRun = true;
 
-    public function __construct(ConsumerConfig $config, ?LoggerInterface $logger = null)
+    public function __construct(ConsumerConfig $config, LoggerInterface|null $logger = null)
     {
         $this->logger = $logger ?? new NullLogger();
 
@@ -48,7 +48,7 @@ final class KafkaConsumer extends RdKafkaConsumer
 
         $rebalanceCallback =
             /** @param array<string, TopicPartition>|null $partitions */
-            function (RdKafkaConsumer $kafka, int $err, ?array $partitions = null): void {
+            function (RdKafkaConsumer $kafka, int $err, array|null $partitions = null): void {
                 switch ($err) {
                     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
                         $this->logger->debug(
@@ -92,8 +92,8 @@ final class KafkaConsumer extends RdKafkaConsumer
     public function start(
         int $timeoutMs,
         callable $onSuccess,
-        ?callable $onPartitionEof = null,
-        ?callable $onTimedOut = null
+        callable|null $onPartitionEof = null,
+        callable|null $onTimedOut = null,
     ): void {
         $this->doStart($timeoutMs, $onSuccess, $onPartitionEof, $onTimedOut);
     }
@@ -105,8 +105,8 @@ final class KafkaConsumer extends RdKafkaConsumer
     public function startBatch(
         int $maxBatchSize,
         int $timeoutMs,
-        ?callable $processRecord = null,
-        ?callable $onBatchProcessed = null
+        callable|null $processRecord = null,
+        callable|null $onBatchProcessed = null,
     ): void {
         $batchTime       = new BatchTime($timeoutMs, new DateTimeImmutable());
         $consumerRecords = new ConsumerRecords();
@@ -119,7 +119,7 @@ final class KafkaConsumer extends RdKafkaConsumer
                 $batchTime,
                 $processRecord,
                 $onBatchProcessed,
-                $consumerRecords
+                $consumerRecords,
             ): void {
                 $consumerRecords->add($message);
                 if ($processRecord !== null) {
@@ -152,8 +152,8 @@ final class KafkaConsumer extends RdKafkaConsumer
     private function doStart(
         int $timeoutMs,
         callable $onSuccess,
-        ?callable $onPartitionEof = null,
-        ?callable $onTimedOut = null
+        callable|null $onPartitionEof = null,
+        callable|null $onTimedOut = null,
     ): void {
         $this->registerSignals($this->shouldRun);
 
@@ -199,14 +199,14 @@ final class KafkaConsumer extends RdKafkaConsumer
     private function checkBatchTimedOut(
         int $timeoutMs,
         BatchTime $batchTime,
-        ?callable $onBatchProcessed,
-        ConsumerRecords $consumerRecords
+        callable|null $onBatchProcessed,
+        ConsumerRecords $consumerRecords,
     ): callable {
         return static function () use (
             $timeoutMs,
             $batchTime,
             $onBatchProcessed,
-            $consumerRecords
+            $consumerRecords,
         ): void {
             $remainingTimeout = $batchTime->endMsTimestamp - (new DateTimeImmutable())->getTimestamp() * 1000;
 
