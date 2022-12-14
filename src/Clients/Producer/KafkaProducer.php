@@ -22,7 +22,7 @@ class KafkaProducer extends Producer
     private $exitCallback;
 
     /** @param callable(KafkaProducer):void|null $exitCallback */
-    public function __construct(ProducerConfig $config, ?callable $exitCallback = null)
+    public function __construct(ProducerConfig $config, callable|null $exitCallback = null)
     {
         $this->exitCallback = $exitCallback;
 
@@ -41,11 +41,11 @@ class KafkaProducer extends Producer
     /** @param array<string, string>|null $headers */
     public function produce(
         string $topicName,
-        ?int $partition,
+        int|null $partition,
         string $value,
-        ?string $key = null,
-        ?array $headers = null,
-        ?int $timestampMs = null
+        string|null $key = null,
+        array|null $headers = null,
+        int|null $timestampMs = null,
     ): void {
         if ($partition < 0) {
             throw new InvalidArgumentException(
