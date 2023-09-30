@@ -20,7 +20,7 @@ final class ConfigTest extends TestCase
     }
 
     /** @return Generator<array{mixed, string}> */
-    public function providerSet(): Generator
+    public static function providerSet(): Generator
     {
         yield [true, 'true'];
         yield [false, 'false'];
