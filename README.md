@@ -143,6 +143,6 @@ final class ExampleBatchConsumer
 
 [Packagist Link]: https://packagist.org/packages/simpod/kafka
 
-[Infection Image]: https://badge.stryker-mutator.io/github.com/simPod/PhpKafka/master
+[Infection Image]: https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FsimPod%2FPhpKafka%2Fmaster
 
 [Infection Link]: https://infection.github.io
