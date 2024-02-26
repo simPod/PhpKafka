@@ -53,7 +53,7 @@ class KafkaProducer extends Producer
             );
         }
 
-        /** @psalm-var ProducerTopic $topic Psalm thinks this is a Topic https://github.com/vimeo/psalm/issues/3406 */
+        /** @phpstan-var ProducerTopic $topic Psalm thinks this is a Topic https://github.com/vimeo/psalm/issues/3406 */
         $topic = $this->newTopic($topicName);
         $topic->producev(
             $partition ?? RD_KAFKA_PARTITION_UA,
