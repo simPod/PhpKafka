@@ -1,7 +1,6 @@
 # PHP Kafka boilerplate wrapper around RdKafka
 
 [![GitHub Actions][GA Image]][GA Link]
-[![Shepherd Type][Shepherd Image]][Shepherd Link]
 [![Code Coverage][Coverage Image]][CodeCov Link]
 [![Downloads][Downloads Image]][Packagist Link]
 [![Packagist][Packagist Image]][Packagist Link]
@@ -128,10 +127,6 @@ final class ExampleBatchConsumer
 [GA Image]: https://github.com/simPod/PhpKafka/workflows/CI/badge.svg
 
 [GA Link]: https://github.com/simPod/PhpKafka/actions?query=workflow%3A%22CI%22+branch%3Amaster
-
-[Shepherd Image]: https://shepherd.dev/github/simPod/PhpKafka/coverage.svg
-
-[Shepherd Link]: https://shepherd.dev/github/simPod/PhpKafka
 
 [Coverage Image]: https://codecov.io/gh/simPod/PhpKafka/branch/master/graph/badge.svg
 

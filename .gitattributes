@@ -8,6 +8,5 @@
 /phpstan.neon.dist export-ignore
 /phpstan-baseline.neon export-ignore
 /phpunit.xml.dist export-ignore
-/psalm.xml.dist export-ignore
 /renovate.json export-ignore
 /tests export-ignore
