@@ -9,6 +9,7 @@ use RdKafka\Producer;
 use RdKafka\ProducerTopic;
 use RuntimeException;
 
+use function assert;
 use function sprintf;
 
 use const RD_KAFKA_PARTITION_UA;
@@ -76,8 +77,10 @@ class KafkaProducer extends Producer
             }
         }
 
+        assert($result !== null);
+
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-            throw new RuntimeException('Was unable to flush, messages might be lost!');
+            throw new RuntimeException('Was unable to flush, messages might be lost!', $result);
         }
     }
 }
