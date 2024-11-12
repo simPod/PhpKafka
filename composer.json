@@ -29,7 +29,7 @@
         "infection/infection": "^0.29.0",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan": "1.12.10",
-        "phpstan/phpstan-phpunit": "1.4.0",
+        "phpstan/phpstan-phpunit": "1.4.1",
         "phpstan/phpstan-strict-rules": "1.6.1",
         "phpunit/phpunit": "^11.0",
         "thecodingmachine/phpstan-safe-rule": "^1.0"
