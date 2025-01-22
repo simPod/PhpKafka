@@ -35,6 +35,9 @@ abstract class Config
 
     public function get(string $key): string
     {
-        return $this->conf->dump()[$key];
+        /** @var array<string, string> $dumped */
+        $dumped = $this->conf->dump();
+
+        return $dumped[$key];
     }
 }
