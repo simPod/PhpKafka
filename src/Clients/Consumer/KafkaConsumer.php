@@ -47,8 +47,8 @@ final class KafkaConsumer extends RdKafkaConsumer
         );
 
         $rebalanceCallback =
-            /** @param array<string, TopicPartition>|null $partitions */
             function (RdKafkaConsumer $kafka, int $err, array|null $partitions = null): void {
+                /** @phpstan-var array<string, TopicPartition>|null $partitions */
                 switch ($err) {
                     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
                         $this->logger->debug(
