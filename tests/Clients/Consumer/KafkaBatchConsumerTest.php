@@ -22,7 +22,7 @@ final class KafkaBatchConsumerTest extends TestCase
     {
         $testProducer = new TestProducer();
         for ($i = 0; $i < 100; $i++) {
-            $testProducer->run(self::PAYLOAD);
+            $testProducer->run(self::TOPIC, self::PAYLOAD);
         }
 
         $consumer = new KafkaConsumer($this->getConfig());
