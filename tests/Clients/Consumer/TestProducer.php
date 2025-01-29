@@ -23,9 +23,15 @@ final class TestProducer
         );
     }
 
-    public function run(string $payload): void
+    /** @param array<string, string>|null $headers */
+    public function run(string $topic, string $payload, array|null $headers = null): void
     {
-        $this->producer->produce(KafkaBatchConsumerTest::TOPIC, null, $payload);
+        $this->producer->produce(
+            $topic,
+            null,
+            $payload,
+            headers: $headers,
+        );
     }
 
     private function getConfig(): ProducerConfig
