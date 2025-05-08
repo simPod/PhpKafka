@@ -18,7 +18,7 @@
         "sort-packages": true
     },
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "ext-pcntl": "*",
         "ext-rdkafka": "^6",
         "psr/log": "^3",
