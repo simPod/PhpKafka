@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace SimPod\Kafka\Tests\Common;
 
 use Generator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 
 final class ConfigTest extends TestCase
 {
-    /** @dataProvider providerSet */
+    #[DataProvider('providerSet')]
     public function testSet(bool|int|string $value, string $expected): void
     {
         $config = new ConsumerConfig();
