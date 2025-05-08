@@ -22,7 +22,7 @@
         "ext-pcntl": "*",
         "ext-rdkafka": "^6",
         "psr/log": "^3",
-        "thecodingmachine/safe": "^2.2"
+        "thecodingmachine/safe": "^2.2 || ^3"
     },
     "require-dev": {
         "doctrine/coding-standard": "^12.0",
