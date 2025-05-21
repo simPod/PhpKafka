@@ -28,7 +28,7 @@
         "doctrine/coding-standard": "^13.0",
         "infection/infection": "^0.29.0",
         "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "2.1.16",
+        "phpstan/phpstan": "2.1.17",
         "phpstan/phpstan-phpunit": "2.0.6",
         "phpstan/phpstan-strict-rules": "2.0.4",
         "phpunit/phpunit": "^12.0",
