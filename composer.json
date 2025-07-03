@@ -26,7 +26,7 @@
     },
     "require-dev": {
         "doctrine/coding-standard": "^13.0",
-        "infection/infection": "^0.29.0",
+        "infection/infection": "^0.30.0",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan": "2.1.17",
         "phpstan/phpstan-phpunit": "2.0.6",
