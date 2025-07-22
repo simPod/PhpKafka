@@ -12,9 +12,9 @@ final class IncompatibleStatusTest extends TestCase
 {
     public function testFromMessage(): void
     {
-        $message      = new Message();
+        $message = new Message();
         $message->err = 1;
-        $exception    = IncompatibleStatus::fromMessage($message);
+        $exception = IncompatibleStatus::fromMessage($message);
 
         self::assertSame(
             'Consumer status "1" is not handled: Broker: Offset out of range',

@@ -54,25 +54,23 @@ final class KafkaConsumer extends RdKafkaConsumer
                         $this->logger->debug(
                             'Assigning partitions',
                             $partitions === null ? [] : array_map(
-                                static function (TopicPartition $partition): string {
-                                    return (string) $partition->getPartition();
-                                },
+                                static fn (TopicPartition $partition): string => (string) $partition->getPartition(),
                                 $partitions,
                             ),
                         );
                         $kafka->assign($partitions);
+
                         break;
                     case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS:
                         $this->logger->debug(
                             'Revoking partitions',
                             $partitions === null ? [] : array_map(
-                                static function (TopicPartition $partition): string {
-                                    return (string) $partition->getPartition();
-                                },
+                                static fn (TopicPartition $partition): string => (string) $partition->getPartition(),
                                 $partitions,
                             ),
                         );
                         $kafka->assign();
+
                         break;
                     default:
                         $this->logger->error(sprintf('Rebalancing failed: %s (%d)', rd_kafka_err2str($err), $err));
@@ -108,7 +106,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable|null $processRecord = null,
         callable|null $onBatchProcessed = null,
     ): void {
-        $batchTime       = new BatchTime($timeoutMs, new DateTimeImmutable());
+        $batchTime = new BatchTime($timeoutMs, new DateTimeImmutable());
         $consumerRecords = new ConsumerRecords();
 
         $this->doStart(
@@ -142,6 +140,13 @@ final class KafkaConsumer extends RdKafkaConsumer
             $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
             $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
         );
+    }
+
+    public function shutdown(): void
+    {
+        $this->logger->debug('Shutting down');
+
+        $this->shouldRun = false;
     }
 
     /**
@@ -221,12 +226,5 @@ final class KafkaConsumer extends RdKafkaConsumer
             $consumerRecords->clear();
             $batchTime->reset($timeoutMs, new DateTimeImmutable());
         };
-    }
-
-    public function shutdown(): void
-    {
-        $this->logger->debug('Shutting down');
-
-        $this->shouldRun = false;
     }
 }

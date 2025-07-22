@@ -15,8 +15,8 @@ use function Safe\gethostname;
 
 final class KafkaBatchConsumerTest extends TestCase
 {
-    public const PAYLOAD = 'Tasty, chilled pudding is best flavored with juicy lime.';
-    public const TOPIC   = 'kafka-batch-consumer';
+    public const string PAYLOAD = 'Tasty, chilled pudding is best flavored with juicy lime.';
+    public const string TOPIC = 'kafka-batch-consumer';
 
     public function testMaxBatchSize(): void
     {
