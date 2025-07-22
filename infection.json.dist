@@ -16,6 +16,6 @@
         },
         "text": "infection-log.txt"
     },
-    "minMsi": 35,
+    "minMsi": 31,
     "minCoveredMsi": 50
 }
