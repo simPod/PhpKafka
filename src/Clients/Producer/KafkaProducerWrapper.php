@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Clients\Producer;
 
+use Closure;
 use InvalidArgumentException;
 use RdKafka\Producer;
-use RdKafka\ProducerTopic;
 use RuntimeException;
 
 use function assert;
@@ -15,21 +15,20 @@ use function sprintf;
 use const RD_KAFKA_PARTITION_UA;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
-/** @deprecated Use {@see \SimPod\Kafka\Clients\Producer\KafkaProducerWrapper} instead */
-class KafkaProducer extends Producer
+final readonly class KafkaProducerWrapper
 {
-    // phpcs:disable Cdn77.NamingConventions.ValidConstantName.ClassConstantNotUpperCase
-    private const int RD_KAFKA_MSG_F_COPY = 0;
+    private const int RdKafkaMsgFCopy = 0;
 
-    /** @var callable(KafkaProducer):void|null */
-    private $exitCallback;
+    public Producer $producer;
 
-    /** @param callable(KafkaProducer):void|null $exitCallback */
+    /** @var (Closure(self):void)|null */
+    private Closure|null $exitCallback;
+
+    /** @param (Closure(self):void)|null $exitCallback */
     public function __construct(ProducerConfig $config, callable|null $exitCallback = null)
     {
         $this->exitCallback = $exitCallback;
-
-        parent::__construct($config->getConf());
+        $this->producer = new Producer($config->getConf());
     }
 
     public function __destruct()
@@ -56,24 +55,23 @@ class KafkaProducer extends Producer
             );
         }
 
-        /** @phpstan-var ProducerTopic $topic Psalm thinks this is a Topic https://github.com/vimeo/psalm/issues/3406 */
-        $topic = $this->newTopic($topicName);
+        $topic = $this->producer->newTopic($topicName);
         $topic->producev(
             $partition ?? RD_KAFKA_PARTITION_UA,
-            self::RD_KAFKA_MSG_F_COPY,
+            self::RdKafkaMsgFCopy,
             $value,
             $key,
             $headers,
-            $timestampMs,
+            $timestampMs ?? 0,
         );
-        $this->poll(0);
+        $this->producer->poll(0);
     }
 
     public function flushMessages(int $timeoutMs = 10000): void
     {
         $result = null;
         for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
-            $result = $this->flush($timeoutMs);
+            $result = $this->producer->flush($timeoutMs);
             if ($result === RD_KAFKA_RESP_ERR_NO_ERROR) {
                 break;
             }

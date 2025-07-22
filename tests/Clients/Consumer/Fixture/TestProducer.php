@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace SimPod\Kafka\Tests\Clients\Consumer;
+namespace SimPod\Kafka\Tests\Clients\Consumer\Fixture;
 
-use SimPod\Kafka\Clients\Producer\KafkaProducer;
+use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
 
 use function Safe\gethostname;
 
 final class TestProducer
 {
-    private KafkaProducer $producer;
+    private KafkaProducerWrapper $producer;
 
     public function __construct()
     {
-        $this->producer = new KafkaProducer(
+        $this->producer = new KafkaProducerWrapper(
             $this->getConfig(),
-            static function (KafkaProducer $producer): void {
+            static function (KafkaProducerWrapper $producer): void {
                 $producer->flushMessages(5000);
             },
         );
