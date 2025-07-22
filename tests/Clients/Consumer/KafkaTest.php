@@ -8,7 +8,7 @@ use Exception;
 use PHPUnit\Framework\TestCase;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
-use SimPod\Kafka\Tests\Clients\Consumer\TestProducer;
+use SimPod\Kafka\Tests\Clients\Consumer\Fixture\TestProducer;
 
 use function mt_rand;
 use function Safe\gethostname;
