@@ -21,7 +21,7 @@ final class KafkaTest extends TestCase
 {
     public function testProduceConsume(): void
     {
-        $topic   = 'produce-consume';
+        $topic = 'produce-consume';
         $headers = ['key' => 'value'];
 
         $testProducer = new TestProducer();

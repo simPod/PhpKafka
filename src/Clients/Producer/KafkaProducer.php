@@ -17,7 +17,8 @@ use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
 class KafkaProducer extends Producer
 {
-    private const RD_KAFKA_MSG_F_COPY = 0;
+    // phpcs:disable Cdn77.NamingConventions.ValidConstantName.ClassConstantNotUpperCase
+    private const int RD_KAFKA_MSG_F_COPY = 0;
 
     /** @var callable(KafkaProducer):void|null */
     private $exitCallback;
