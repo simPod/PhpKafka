@@ -15,7 +15,7 @@ use function sprintf;
 use const RD_KAFKA_PARTITION_UA;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
-final readonly class KafkaProducerWrapper
+readonly class KafkaProducerWrapper
 {
     private const int RdKafkaMsgFCopy = 0;
 
