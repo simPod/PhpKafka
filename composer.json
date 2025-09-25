@@ -28,7 +28,7 @@
         "cdn77/coding-standard": "^7.4",
         "infection/infection": "^0.31.0",
         "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "2.1.28",
+        "phpstan/phpstan": "2.1.29",
         "phpstan/phpstan-phpunit": "2.0.7",
         "phpstan/phpstan-strict-rules": "2.0.6",
         "phpunit/phpunit": "^12.0",
