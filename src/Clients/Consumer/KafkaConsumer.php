@@ -150,7 +150,7 @@ final class KafkaConsumer extends RdKafkaConsumer
     }
 
     /**
-     * @param callable(Message): void $onSuccess
+     * @param callable(Message):void $onSuccess
      * @param (callable():void)|null       $onPartitionEof
      * @param (callable():void)|null       $onTimedOut
      */
