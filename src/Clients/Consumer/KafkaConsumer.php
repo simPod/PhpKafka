@@ -83,9 +83,9 @@ final class KafkaConsumer extends RdKafkaConsumer
     }
 
     /**
-     * @param callable(Message) : void $onSuccess
-     * @param callable() : void        $onPartitionEof
-     * @param callable() : void        $onTimedOut
+     * @param callable(Message):void $onSuccess
+     * @param (callable():void)|null $onPartitionEof
+     * @param (callable():void)|null $onTimedOut
      */
     public function start(
         int $timeoutMs,
@@ -97,8 +97,8 @@ final class KafkaConsumer extends RdKafkaConsumer
     }
 
     /**
-     * @param callable(Message) : void         $processRecord
-     * @param callable(ConsumerRecords) : void $onBatchProcessed
+     * @param (callable(Message):void)|null         $processRecord
+     * @param (callable(ConsumerRecords):void)|null $onBatchProcessed
      */
     public function startBatch(
         int $maxBatchSize,
@@ -150,9 +150,9 @@ final class KafkaConsumer extends RdKafkaConsumer
     }
 
     /**
-     * @param callable(Message): void $onSuccess
-     * @param callable() : void       $onPartitionEof
-     * @param callable() : void       $onTimedOut
+     * @param callable(Message):void $onSuccess
+     * @param (callable():void)|null       $onPartitionEof
+     * @param (callable():void)|null       $onTimedOut
      */
     private function doStart(
         int $timeoutMs,
