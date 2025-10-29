@@ -166,7 +166,7 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable|null $onTimedOut = null,
     ): void {
         $this->shouldRun = true;
-        $terminationCallback = fn () => $this->shouldRun = false;
+        $terminationCallback = fn () => $this->stop();
         $this->registerSignals($terminationCallback);
 
         while ($this->shouldRun) {
