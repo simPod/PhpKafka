@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Clients\Consumer;
 
+use Safe\Exceptions\PcntlException;
+
 use function Safe\pcntl_signal;
 use function Safe\pcntl_sigprocmask;
 
@@ -22,12 +24,13 @@ trait WithSignalControl
         $config->set('internal.termination.signal', SIGIO);
     }
 
-    private function registerSignals(bool &$shouldRun): void
+    /**
+     * @param callable():mixed $terminationCallback
+     *
+     * @throws PcntlException
+     */
+    private function registerSignals(callable $terminationCallback): void
     {
-        $terminationCallback = static function () use (&$shouldRun): void {
-            $shouldRun = false;
-        };
-
         pcntl_signal(SIGTERM, $terminationCallback);
         pcntl_signal(SIGINT, $terminationCallback);
         pcntl_signal(SIGHUP, $terminationCallback);
