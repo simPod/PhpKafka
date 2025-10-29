@@ -146,6 +146,11 @@ final class KafkaConsumer extends RdKafkaConsumer
     {
         $this->logger->debug('Shutting down');
 
+        $this->stop();
+    }
+
+    public function stop(): void
+    {
         $this->shouldRun = false;
     }
 
@@ -160,7 +165,9 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable|null $onPartitionEof = null,
         callable|null $onTimedOut = null,
     ): void {
-        $this->registerSignals($this->shouldRun);
+        $this->shouldRun = true;
+        $terminationCallback = fn () => $this->stop();
+        $this->registerSignals($terminationCallback);
 
         while ($this->shouldRun) {
             $message = $this->consume($timeoutMs);
