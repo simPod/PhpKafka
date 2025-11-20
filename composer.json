@@ -28,8 +28,8 @@
         "cdn77/coding-standard": "^7.4",
         "infection/infection": "^0.31.0",
         "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "2.1.31",
-        "phpstan/phpstan-phpunit": "2.0.7",
+        "phpstan/phpstan": "2.1.32",
+        "phpstan/phpstan-phpunit": "2.0.8",
         "phpstan/phpstan-strict-rules": "2.0.7",
         "phpunit/phpunit": "^12.0",
         "thecodingmachine/phpstan-safe-rule": "^1.0"
