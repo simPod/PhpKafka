@@ -7,7 +7,7 @@ namespace SimPod\Kafka\Tests\Clients\Consumer\Fixture;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
 
-use function Safe\gethostname;
+use function gethostname;
 
 final class TestProducer
 {
