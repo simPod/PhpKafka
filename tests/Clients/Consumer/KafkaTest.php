@@ -11,7 +11,7 @@ use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
 use SimPod\Kafka\Tests\Clients\Consumer\Fixture\TestProducer;
 
 use function mt_rand;
-use function Safe\gethostname;
+use function gethostname;
 
 use const RD_KAFKA_RESP_ERR__PARTITION_EOF;
 use const RD_KAFKA_RESP_ERR__TIMED_OUT;
