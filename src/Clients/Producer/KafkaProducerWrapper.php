@@ -15,20 +15,21 @@ use function sprintf;
 use const RD_KAFKA_PARTITION_UA;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
-readonly class KafkaProducerWrapper
+class KafkaProducerWrapper
 {
     private const int RdKafkaMsgFCopy = 0;
 
-    public Producer $producer;
+    private Producer|null $producer = null;
 
     /** @var (Closure(self):void)|null */
-    private Closure|null $exitCallback;
+    private readonly Closure|null $exitCallback;
 
     /** @param (Closure(self):void)|null $exitCallback */
-    public function __construct(ProducerConfig $config, callable|null $exitCallback = null)
-    {
+    public function __construct(
+        private readonly ProducerConfig $config,
+        callable|null $exitCallback = null,
+    ) {
         $this->exitCallback = $exitCallback;
-        $this->producer = new Producer($config->getConf());
     }
 
     public function __destruct()
@@ -38,6 +39,11 @@ readonly class KafkaProducerWrapper
         }
 
         ($this->exitCallback)($this);
+    }
+
+    public function getProducer(): Producer
+    {
+        return $this->producer ??= new Producer($this->config->getConf());
     }
 
     /** @param array<string, string>|null $headers */
@@ -55,7 +61,8 @@ readonly class KafkaProducerWrapper
             );
         }
 
-        $topic = $this->producer->newTopic($topicName);
+        $producer = $this->getProducer();
+        $topic = $producer->newTopic($topicName);
         $topic->producev(
             $partition ?? RD_KAFKA_PARTITION_UA,
             self::RdKafkaMsgFCopy,
@@ -64,11 +71,15 @@ readonly class KafkaProducerWrapper
             $headers,
             $timestampMs ?? 0,
         );
-        $this->producer->poll(0);
+        $producer->poll(0);
     }
 
     public function flushMessages(int $timeoutMs = 10000): void
     {
+        if ($this->producer === null) {
+            return;
+        }
+
         $result = null;
         for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
             $result = $this->producer->flush($timeoutMs);
