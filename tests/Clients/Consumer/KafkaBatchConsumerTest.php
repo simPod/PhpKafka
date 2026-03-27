@@ -13,8 +13,8 @@ use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Tests\Clients\Consumer\Fixture\TestProducer;
 
-use function mt_rand;
 use function gethostname;
+use function mt_rand;
 
 #[CoversClass(KafkaConsumer::class)]
 #[CoversClass(KafkaProducerWrapper::class)]

@@ -13,8 +13,8 @@ use RdKafka\TopicPartition;
 use SimPod\Kafka\Clients\Consumer\Exception\IncompatibleStatus;
 
 use function array_map;
-use function rd_kafka_err2str;
 use function pcntl_signal_dispatch;
+use function rd_kafka_err2str;
 use function sprintf;
 
 use const RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS;
