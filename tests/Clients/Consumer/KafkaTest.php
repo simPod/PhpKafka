@@ -46,7 +46,7 @@ final class KafkaTest extends TestCase
                 case RD_KAFKA_RESP_ERR__TIMED_OUT:
                     self::fail('Timed out');
                 default:
-                    throw new Exception($message->errstr(), $message->err);
+                    throw new Exception($message->errstr() ?? 'Unknown Kafka error', $message->err);
             }
         }
     }

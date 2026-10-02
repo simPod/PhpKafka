@@ -4,6 +4,9 @@ parameters:
         - %currentWorkingDirectory%/src
         - %currentWorkingDirectory%/tests
 
+    stubFiles:
+        - tests/stubs/RdKafkaMessage.php.stub
+
     ignoreErrors:
         - '~Constant SimPod\\Kafka\\Clients\\(Consumer|Producer)\\.+?Config::[A-Z_]+ is unused.~'
 

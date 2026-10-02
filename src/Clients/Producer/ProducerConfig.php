@@ -7,6 +7,8 @@ namespace SimPod\Kafka\Clients\Producer;
 use SimPod\Kafka\Clients\CommonClientConfigs;
 use SimPod\Kafka\Common\Config;
 
+use function assert;
+
 //phpcs:disable Cdn77.NamingConventions.ValidConstantName.ClassConstantNotUpperCase
 //phpcs:disable SlevomatCodingStandard.Classes.UnusedPrivateElements.UnusedConstant
 //phpcs:disable SlevomatCodingStandard.Files.LineLength.LineTooLong
@@ -209,4 +211,17 @@ final class ProducerConfig extends Config
     . ' prefer to leave this config unset and instead use <code>' . self::DELIVERY_TIMEOUT_MS_CONFIG . '</code> to control'
     . ' retry behavior.';
     private const string PARTITIONER_CLASS_DOC = 'Partitioner class that implements the <code>org.apache.kafka.clients.producer.Partitioner</code> interface.';
+
+    public function getConf(): ProducerConf
+    {
+        $conf = parent::getConf();
+        assert($conf instanceof ProducerConf);
+
+        return $conf;
+    }
+
+    protected function createConf(): ProducerConf
+    {
+        return new ProducerConf();
+    }
 }

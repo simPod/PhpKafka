@@ -22,6 +22,34 @@ However, they are copied from Java API and not all are applicable to librdkafka.
 
 ## Clients
 
+### Producer
+
+`KafkaProducerWrapper::flushMessages()` waits for the native producer queue to drain and reports unsuccessful
+delivery through `SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed`. Queue completion alone does not imply
+that every record succeeded: rejected or expired records also leave the queue.
+
+Call `flushMessages()` before deleting an outbox row or acknowledging an input record whose output depends on
+successful publication. Success has the guarantees of your configured `acks` setting; `acks=0` does not provide
+broker acknowledgment. The wrapper does not override acknowledgments, idempotence, or delivery-report settings.
+
+The first unsuccessful delivery report remains recorded. A later successful report or empty flush does not clear
+it. `produce()` can also surface a failed report from an earlier record. Recovery from such a terminal record
+failure uses a new wrapper/native producer. A native flush timeout is reported separately and can be retried while
+the native producer still has pending work.
+
+Callbacks configured through `$config->getConf()->setDrMsgCb(...)` continue to receive the original native producer
+and message. Each native producer retains the callback configured when it was created, even when its configuration
+is reused. Callback exceptions propagate unchanged. Delivery tracking also covers records submitted through the
+public `getProducer()` native API.
+
+An exit callback remains application code. Catch and log previously unobserved shutdown delivery failures there;
+do not use destruction as an acknowledgment boundary. The wrapper suppresses only its duplicate report-error check
+when a previously surfaced delivery failure is flushed again during destruction.
+
+Idempotent production prevents duplicates caused by the native producer's own retries. It does not turn a rejected
+record into a successful one, deduplicate an application replay through a new producer, or combine PostgreSQL and
+Kafka commits into one transaction.
+
 ### Consumer
 
 `KafkaConsumer` boilerplate is available with `startBatch()` method ([to suplement this example in librdkafka](https://github.com/edenhill/librdkafka/blob/master/examples/rdkafka_consume_batch.cpp#L97)) and with `start()`. They also handle

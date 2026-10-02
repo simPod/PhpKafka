@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace SimPod\Kafka\Clients\Producer;
 
 use InvalidArgumentException;
+use RdKafka\Exception as RdKafkaException;
+use RdKafka\Message;
 use RdKafka\Producer;
 use RdKafka\ProducerTopic;
-use RuntimeException;
+use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 
 use function assert;
 use function sprintf;
@@ -21,27 +23,54 @@ class KafkaProducer extends Producer
     // phpcs:disable Cdn77.NamingConventions.ValidConstantName.ClassConstantNotUpperCase
     private const int RD_KAFKA_MSG_F_COPY = 0;
 
+    private readonly DeliveryFailureState $deliveryFailureState;
+
+    private bool $destructing = false;
+
     /** @var callable(KafkaProducer):void|null */
     private $exitCallback;
 
-    /** @param callable(KafkaProducer):void|null $exitCallback */
+    /**
+     * @param callable(KafkaProducer):void|null $exitCallback
+     *
+     * @throws RdKafkaException
+     */
     public function __construct(ProducerConfig $config, callable|null $exitCallback = null)
     {
         $this->exitCallback = $exitCallback;
+        $this->deliveryFailureState = new DeliveryFailureState();
 
-        parent::__construct($config->getConf());
+        $conf = $config->getConf();
+        parent::__construct($conf);
+
+        $deliveryFailureState = $this->deliveryFailureState;
+        $conf->addDeliveryObserver(
+            $this,
+            static function (Producer $producer, Message $message) use ($deliveryFailureState): void {
+                $deliveryFailureState->record($message);
+            },
+        );
     }
 
+    /** Exceptions from application callbacks propagate unchanged. */
     public function __destruct()
     {
         if ($this->exitCallback === null) {
             return;
         }
 
+        $this->destructing = true;
         ($this->exitCallback)($this);
     }
 
-    /** @param array<string, string>|null $headers */
+    /**
+     * Exceptions from application callbacks propagate unchanged.
+     *
+     * @param array<string, string>|null $headers
+     *
+     * @throws DeliveryFailed
+     * @throws InvalidArgumentException
+     */
     public function produce(
         string $topicName,
         int|null $partition,
@@ -56,19 +85,38 @@ class KafkaProducer extends Producer
             );
         }
 
-        /** @phpstan-var ProducerTopic $topic Psalm thinks this is a Topic https://github.com/vimeo/psalm/issues/3406 */
-        $topic = $this->newTopic($topicName);
-        $topic->producev(
-            $partition ?? RD_KAFKA_PARTITION_UA,
-            self::RD_KAFKA_MSG_F_COPY,
-            $value,
-            $key,
-            $headers,
-            $timestampMs,
-        );
+        $this->deliveryFailureState->assertSuccessful();
+
+        try {
+            // Psalm sees Topic instead: https://github.com/vimeo/psalm/issues/3406
+            /** @phpstan-var ProducerTopic $topic */
+            $topic = $this->newTopic($topicName);
+            $topic->producev(
+                $partition ?? RD_KAFKA_PARTITION_UA,
+                self::RD_KAFKA_MSG_F_COPY,
+                $value,
+                $key,
+                $headers,
+                $timestampMs ?? 0,
+            );
+        } catch (RdKafkaException $exception) {
+            throw new DeliveryFailed(
+                sprintf('Kafka enqueue failed for topic "%s": %s', $topicName, $exception->getMessage()),
+                $exception->getCode(),
+                $exception,
+                $topicName,
+            );
+        }
+
         $this->poll(0);
+        $this->deliveryFailureState->assertSuccessful();
     }
 
+    /**
+     * Exceptions from application callbacks propagate unchanged.
+     *
+     * @throws DeliveryFailed
+     */
     public function flushMessages(int $timeoutMs = 10000): void
     {
         $result = null;
@@ -81,8 +129,10 @@ class KafkaProducer extends Producer
 
         assert($result !== null);
 
+        $this->deliveryFailureState->assertSuccessful(suppressReported: $this->destructing);
+
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-            throw new RuntimeException('Was unable to flush, messages might be lost!', $result);
+            throw new DeliveryFailed('Was unable to flush, messages might be lost!', $result);
         }
     }
 }
