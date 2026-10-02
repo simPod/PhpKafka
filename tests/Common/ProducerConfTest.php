@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Tests\Common;
 
+use ArrayObject;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -13,7 +14,6 @@ use RdKafka\Producer;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
-use SimPod\Kafka\Clients\Producer\ProducerConf;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
 
 use function spl_object_id;
@@ -29,7 +29,6 @@ final class ProducerConfTest extends TestCase
         $conf = $config->getConf();
         $config->set(ProducerConfig::CLIENT_ID_CONFIG, $value);
 
-        self::assertInstanceOf(ProducerConf::class, $conf);
         self::assertSame($conf, $config->getConf());
         self::assertSame($expected, $config->get(ProducerConfig::CLIENT_ID_CONFIG));
     }
@@ -59,16 +58,18 @@ final class ProducerConfTest extends TestCase
         $config->set('message.timeout.ms', 100);
         $config->set('log_level', 0);
         $conf = $config->getConf();
-        $firstReports = [];
-        $conf->setDrMsgCb(static function (Producer $producer, Message $message) use (&$firstReports): void {
+        /** @var ArrayObject<int, array{int, int, string|null}> $firstReports */
+        $firstReports = new ArrayObject();
+        $conf->setDrMsgCb(static function (Producer $producer, Message $message) use ($firstReports): void {
             // phpcs:ignore Cdn77.NamingConventions.ValidVariableName -- Native RdKafka field name.
             $firstReports[] = [spl_object_id($producer), $message->err, $message->topic_name];
         });
         $first = new KafkaProducerWrapper($config);
         $firstNative = $first->getProducer();
 
-        $secondReports = [];
-        $conf->setDrMsgCb(static function (Producer $producer, Message $message) use (&$secondReports): void {
+        /** @var ArrayObject<int, array{int, int, string|null}> $secondReports */
+        $secondReports = new ArrayObject();
+        $conf->setDrMsgCb(static function (Producer $producer, Message $message) use ($secondReports): void {
             // phpcs:ignore Cdn77.NamingConventions.ValidVariableName -- Native RdKafka field name.
             $secondReports[] = [spl_object_id($producer), $message->err, $message->topic_name];
         });
@@ -83,8 +84,8 @@ final class ProducerConfTest extends TestCase
         });
         $first->produce('first-config-snapshot', null, 'first');
         self::assertSame(RD_KAFKA_RESP_ERR_NO_ERROR, $firstNative->flush(5000));
-        self::assertSame([[spl_object_id($firstNative), -192, 'first-config-snapshot']], $firstReports);
-        self::assertSame([], $secondReports);
+        self::assertSame([[spl_object_id($firstNative), -192, 'first-config-snapshot']], $firstReports->getArrayCopy());
+        self::assertSame([], $secondReports->getArrayCopy());
 
         try {
             $first->flushMessages(5000);
@@ -97,14 +98,14 @@ final class ProducerConfTest extends TestCase
         // The first report must not poison the second producer before its first enqueue.
         $second->produce('second-config-snapshot', null, 'second');
         self::assertSame(RD_KAFKA_RESP_ERR_NO_ERROR, $secondNative->flush(5000));
-        self::assertSame([[spl_object_id($secondNative), -192, 'second-config-snapshot']], $secondReports);
+        self::assertSame([[spl_object_id($secondNative), -192, 'second-config-snapshot']], $secondReports->getArrayCopy());
         self::assertCount(1, $firstReports);
         self::assertSame(0, $replacementCalls);
 
         $this->expectException(DeliveryFailed::class);
         $this->expectExceptionCode(-192);
-        $this->expectExceptionMessageIs(
-            'Kafka delivery failed for topic "second-config-snapshot": Local: Message timed out',
+        $this->expectExceptionMessageMatches(
+            '~\AKafka delivery failed for topic "second-config-snapshot": Local: Message timed out\z~',
         );
 
         try {

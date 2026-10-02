@@ -45,7 +45,11 @@ final class ProducerConf extends Conf
     private function installDispatcher(Closure|null $callback): void
     {
         $deliveryObservers = $this->deliveryObservers;
-        parent::setDrMsgCb(static function (Producer $producer, Message $message) use (
+
+        parent::setDrMsgCb(static function (
+            Producer $producer,
+            Message $message,
+        ) use (
             $deliveryObservers,
             $callback,
         ): void {

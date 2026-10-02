@@ -14,8 +14,10 @@ use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 use SimPod\Kafka\Clients\Producer\KafkaProducer;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
+use Throwable;
 use WeakReference;
 
+use function preg_quote;
 use function spl_object_id;
 use function usleep;
 
@@ -48,7 +50,7 @@ final class KafkaProducerWrapperTest extends TestCase
         // An explicitly observed failure remains visible outside destruction.
         $this->expectException(DeliveryFailed::class);
         $this->expectExceptionCode(-192);
-        $this->expectExceptionMessageIs($failure->getMessage());
+        $this->expectExceptionMessageMatches('~\A' . preg_quote($failure->getMessage(), '~') . '\z~');
         $producer->produce('must-not-be-enqueued', null, 'payload');
     }
 
@@ -305,7 +307,7 @@ final class KafkaProducerWrapperTest extends TestCase
 
         try {
             unset($producer);
-        } catch (DeliveryFailed $exception) {
+        } catch (Throwable $exception) {
             self::assertSame($expected, $exception);
 
             return;

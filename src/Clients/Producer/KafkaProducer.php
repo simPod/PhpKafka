@@ -41,6 +41,7 @@ class KafkaProducer extends Producer
         $this->deliveryFailureState = new DeliveryFailureState();
 
         $conf = $config->getConf();
+
         parent::__construct($conf);
 
         $deliveryFailureState = $this->deliveryFailureState;
