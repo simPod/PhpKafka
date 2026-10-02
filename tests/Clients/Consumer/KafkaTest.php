@@ -32,23 +32,25 @@ final class KafkaTest extends TestCase
         $consumer = new KafkaConsumer($this->getConfig());
         $consumer->subscribe([$topic]);
 
-        while (true) {
+        for ($attempt = 0; $attempt < 6; $attempt++) {
             $message = $consumer->consume(5000);
             switch ($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
                     self::assertSame($message->headers, $headers);
 
-                    break 2;
+                    return;
                 // phpcs:ignore PSR2.ControlStructures.SwitchDeclaration.TerminatingComment
                 case RD_KAFKA_RESP_ERR__PARTITION_EOF:
                     self::fail('No more messages; will wait for more');
                 // phpcs:ignore PSR2.ControlStructures.SwitchDeclaration.TerminatingComment
                 case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                    self::fail('Timed out');
+                    break;
                 default:
                     throw new Exception($message->errstr() ?? 'Unknown Kafka error', $message->err);
             }
         }
+
+        self::fail('Timed out waiting for consumer assignment and the published record');
     }
 
     private function getConfig(): ConsumerConfig

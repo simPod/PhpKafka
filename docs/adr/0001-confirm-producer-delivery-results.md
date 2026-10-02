@@ -4,6 +4,8 @@
 
 Accepted.
 
+Pull request: [#283](https://github.com/simPod/PhpKafka/pull/283).
+
 ## Context
 
 Native flush reports local queue completion. Records that fail permanently or expire also leave the queue, so

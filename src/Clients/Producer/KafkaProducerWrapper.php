@@ -72,12 +72,15 @@ class KafkaProducerWrapper
     }
 
     /**
-     * Exceptions from application callbacks propagate unchanged.
+     * Exceptions from application callbacks are caller-owned and propagate unchanged.
      *
+     * @template TPartition of int|null
+     *
+     * @param TPartition $partition
      * @param array<string, string>|null $headers
      *
      * @throws DeliveryFailed
-     * @throws InvalidArgumentException
+     * @throws (TPartition is int<min, -1> ? InvalidArgumentException : never)
      */
     public function produce(
         string $topicName,

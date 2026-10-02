@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+// Analysis-only native declarations. scanFiles corrects native method types, not just PHPDoc.
+// Source: https://github.com/arnaud-lb/php-rdkafka/blob/6.x/conf.stub.php
+
+namespace RdKafka;
+
+class Conf
+{
+    public function __construct() {}
+
+    /** @return array<string, string> */
+    public function dump(): array {}
+
+    public function set(string $name, string $value): void {}
+
+    /** @deprecated */
+    public function setDefaultTopicConf(TopicConf $topic_conf): void {}
+
+    /** @param callable(\RdKafka|KafkaConsumer, int, string):void $callback */
+    public function setErrorCb(callable $callback): void {}
+
+    /** @param callable(Producer, Message):void $callback */
+    public function setDrMsgCb(callable $callback): void {}
+
+    /** @param callable(\RdKafka|KafkaConsumer, string, int):void $callback */
+    public function setStatsCb(callable $callback): void {}
+
+    /** @param callable(KafkaConsumer, int, array<TopicPartition>):void $callback */
+    public function setRebalanceCb(callable $callback): void {}
+
+    /** @param callable(Message, \RdKafka|KafkaConsumer):void $callback */
+    public function setConsumeCb(callable $callback): void {}
+
+    /** @param callable(KafkaConsumer, int, array<TopicPartition>):void $callback */
+    public function setOffsetCommitCb(callable $callback): void {}
+
+    /** @param callable(\RdKafka|KafkaConsumer, int, string, string):void $callback */
+    public function setLogCb(callable $callback): void {}
+
+    /** @param callable(\RdKafka|KafkaConsumer, string|null):void $callback */
+    public function setOauthbearerTokenRefreshCb(callable $callback): void {}
+}

@@ -1,7 +1,2 @@
 parameters:
-    ignoreErrors:
-        # php-rdkafka 6.x declares callable; the bundled PhpStorm stub declares mixed.
-        -
-            message: '#^Parameter \#1 \$callback \(callable\) of method SimPod\\Kafka\\Clients\\Producer\\ProducerConf\:\:setDrMsgCb\(\) is not contravariant with parameter \#1 \$callback \(mixed\) of method RdKafka\\Conf\:\:setDrMsgCb\(\)\.$#'
-            count: 1
-            path: src/Clients/Producer/ProducerConf.php
+    ignoreErrors: []

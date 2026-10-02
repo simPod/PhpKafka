@@ -14,7 +14,6 @@ use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 use SimPod\Kafka\Clients\Producer\KafkaProducer;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
-use Throwable;
 use WeakReference;
 
 use function preg_quote;
@@ -305,15 +304,10 @@ final class KafkaProducerWrapperTest extends TestCase
         $producer->produce('reported-before-application-exit', null, 'payload');
         self::flushFailure($producer);
 
-        try {
-            unset($producer);
-        } catch (Throwable $exception) {
-            self::assertSame($expected, $exception);
-
-            return;
-        }
-
-        self::fail('The application exit callback exception was swallowed.');
+        $this->expectException(DeliveryFailed::class);
+        $this->expectExceptionCode($expected->getCode());
+        $this->expectExceptionMessageMatches('~\A' . preg_quote($expected->getMessage(), '~') . '\z~');
+        unset($producer);
     }
 
     private static function createConfig(

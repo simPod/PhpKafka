@@ -98,7 +98,10 @@ final class ProducerConfTest extends TestCase
         // The first report must not poison the second producer before its first enqueue.
         $second->produce('second-config-snapshot', null, 'second');
         self::assertSame(RD_KAFKA_RESP_ERR_NO_ERROR, $secondNative->flush(5000));
-        self::assertSame([[spl_object_id($secondNative), -192, 'second-config-snapshot']], $secondReports->getArrayCopy());
+        self::assertSame(
+            [[spl_object_id($secondNative), -192, 'second-config-snapshot']],
+            $secondReports->getArrayCopy(),
+        );
         self::assertCount(1, $firstReports);
         self::assertSame(0, $replacementCalls);
 
