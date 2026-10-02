@@ -39,6 +39,7 @@ final class KafkaProducerWrapperTest extends TestCase
 
         $failure = self::flushFailure($producer);
         self::assertSame(-192, $failure->getCode());
+        self::assertSame(-192, $failure->errorCode);
         self::assertSame('delivery-failed', $failure->topicName);
         self::assertSame(
             'Kafka delivery failed for topic "delivery-failed": Local: Message timed out',
