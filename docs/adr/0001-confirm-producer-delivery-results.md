@@ -35,5 +35,8 @@ confirm delivery before committing their own source state.
 - User callbacks and direct native access remain supported.
 - Idempotence and Kafka transactions retain their native scope. The wrapper does not provide an atomic transaction
   with an external database or guarantee downstream execution.
+- An application re-send receives a new sequence number, including on the same producer. Retrying an outbox after
+  a database commit failure can therefore duplicate accepted records. At-least-once delivery remains a valid design;
+  this confirmation contract does not require atomic database and Kafka commits.
 - Invalid negative partitions remain input errors. Native enqueue failures preserve their cause, and user callback
   failures are not reclassified as delivery errors.
