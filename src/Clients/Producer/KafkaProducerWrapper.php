@@ -6,8 +6,10 @@ namespace SimPod\Kafka\Clients\Producer;
 
 use Closure;
 use InvalidArgumentException;
+use RdKafka\Exception as RdKafkaException;
+use RdKafka\Message;
 use RdKafka\Producer;
-use RuntimeException;
+use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 
 use function assert;
 use function sprintf;
@@ -21,32 +23,65 @@ class KafkaProducerWrapper
 
     private Producer|null $producer = null;
 
+    private readonly DeliveryFailureState $deliveryFailureState;
+
+    private bool $destructing = false;
+
     /** @var (Closure(self):void)|null */
     private readonly Closure|null $exitCallback;
 
-    /** @param (Closure(self):void)|null $exitCallback */
+    /** @param (callable(self):void)|null $exitCallback */
     public function __construct(
         private readonly ProducerConfig $config,
         callable|null $exitCallback = null,
     ) {
-        $this->exitCallback = $exitCallback;
+        $this->deliveryFailureState = new DeliveryFailureState();
+        $this->exitCallback = $exitCallback === null ? null : Closure::fromCallable($exitCallback);
     }
 
+    /** Exceptions from application callbacks propagate unchanged. */
     public function __destruct()
     {
         if ($this->exitCallback === null) {
             return;
         }
 
+        $this->destructing = true;
         ($this->exitCallback)($this);
     }
 
+    /** @throws RdKafkaException */
     public function getProducer(): Producer
     {
-        return $this->producer ??= new Producer($this->config->getConf());
+        if ($this->producer !== null) {
+            return $this->producer;
+        }
+
+        $conf = $this->config->getConf();
+        $producer = new Producer($conf);
+        $deliveryFailureState = $this->deliveryFailureState;
+        $conf->addDeliveryObserver(
+            $producer,
+            static function (Producer $producer, Message $message) use ($deliveryFailureState): void {
+                $deliveryFailureState->record($message);
+            },
+        );
+        $this->producer = $producer;
+
+        return $producer;
     }
 
-    /** @param array<string, string>|null $headers */
+    /**
+     * Exceptions from application callbacks are caller-owned and propagate unchanged.
+     *
+     * @param TPartition $partition
+     * @param array<string, string>|null $headers
+     *
+     * @throws DeliveryFailed
+     * @throws (TPartition is int<min, -1> ? InvalidArgumentException : never) Negative partitions are invalid.
+     *
+     * @template TPartition of int|null
+     */
     public function produce(
         string $topicName,
         int|null $partition,
@@ -61,19 +96,37 @@ class KafkaProducerWrapper
             );
         }
 
-        $producer = $this->getProducer();
-        $topic = $producer->newTopic($topicName);
-        $topic->producev(
-            $partition ?? RD_KAFKA_PARTITION_UA,
-            self::RdKafkaMsgFCopy,
-            $value,
-            $key,
-            $headers,
-            $timestampMs ?? 0,
-        );
+        $this->deliveryFailureState->assertSuccessful();
+
+        try {
+            $producer = $this->getProducer();
+            $topic = $producer->newTopic($topicName);
+            $topic->producev(
+                $partition ?? RD_KAFKA_PARTITION_UA,
+                self::RdKafkaMsgFCopy,
+                $value,
+                $key,
+                $headers,
+                $timestampMs ?? 0,
+            );
+        } catch (RdKafkaException $exception) {
+            throw new DeliveryFailed(
+                sprintf('Kafka enqueue failed for topic "%s": %s', $topicName, $exception->getMessage()),
+                $exception->getCode(),
+                $exception,
+                $topicName,
+            );
+        }
+
         $producer->poll(0);
+        $this->deliveryFailureState->assertSuccessful();
     }
 
+    /**
+     * Exceptions from application callbacks propagate unchanged.
+     *
+     * @throws DeliveryFailed
+     */
     public function flushMessages(int $timeoutMs = 10000): void
     {
         if ($this->producer === null) {
@@ -90,8 +143,10 @@ class KafkaProducerWrapper
 
         assert($result !== null);
 
+        $this->deliveryFailureState->assertSuccessful(suppressReported: $this->destructing);
+
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-            throw new RuntimeException('Was unable to flush, messages might be lost!', $result);
+            throw new DeliveryFailed('Was unable to flush, messages might be lost!', $result);
         }
     }
 }

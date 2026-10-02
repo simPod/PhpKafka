@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+// Native php-rdkafka 6.x message declarations.
+// Source: https://github.com/arnaud-lb/php-rdkafka/blob/6.x/message.stub.php
+
+namespace RdKafka;
+
+class Message
+{
+    public int $err;
+
+    /** @var string|null */
+    public string|null $topic_name = null;
+
+    /** @var int|null */
+    public int|null $timestamp = null;
+
+    public int $partition;
+
+    /** @var string|null */
+    public string|null $payload = null;
+
+    /** @var int|null */
+    public int|null $len = null;
+
+    /** @var string|null */
+    public string|null $key = null;
+
+    public int $offset;
+
+    /** @var array<string, string> */
+    public array $headers;
+
+    /** @var string|null */
+    public string|null $opaque = null;
+
+    /** @return string|null */
+    public function errstr(): string|null {}
+}

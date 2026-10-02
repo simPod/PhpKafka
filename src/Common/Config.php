@@ -12,7 +12,7 @@ abstract class Config
 
     public function __construct()
     {
-        $this->conf = new Conf();
+        $this->conf = $this->createConf();
     }
 
     public function getConf(): Conf
@@ -39,5 +39,10 @@ abstract class Config
         $dumped = $this->conf->dump();
 
         return $dumped[$key];
+    }
+
+    protected function createConf(): Conf
+    {
+        return new Conf();
     }
 }
