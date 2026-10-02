@@ -67,13 +67,13 @@ class KafkaProducer extends Producer
     /**
      * Exceptions from application callbacks are caller-owned and propagate unchanged.
      *
-     * @template TPartition of int|null
-     *
      * @param TPartition $partition
      * @param array<string, string>|null $headers
      *
      * @throws DeliveryFailed
-     * @throws (TPartition is int<min, -1> ? InvalidArgumentException : never)
+     * @throws (TPartition is int<min, -1> ? InvalidArgumentException : never) Negative partitions are invalid.
+     *
+     * @template TPartition of int|null
      */
     public function produce(
         string $topicName,
