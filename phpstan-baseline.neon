@@ -1,2 +1,7 @@
 parameters:
-    ignoreErrors: []
+    ignoreErrors:
+        # Opaque support is conditional in ext-rdkafka 6.x builds; the runtime check is required.
+        -
+            message: '#^Call to function method_exists\(\) with ''RdKafka\\\\Producer'' and ''purge'' will always evaluate to true\.$#'
+            count: 1
+            path: src/Clients/Producer/KafkaProducerWrapper.php

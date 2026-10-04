@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Tests\Clients\Producer;
 
+use Countable;
 use Generator;
+use InvalidArgumentException;
+use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RdKafka\Exception as RdKafkaException;
@@ -14,17 +17,227 @@ use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 use SimPod\Kafka\Clients\Producer\KafkaProducer;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Clients\Producer\ProducerConfig;
+use SimPod\Kafka\Clients\Producer\ProducerRecord;
 use WeakReference;
 
+use function count;
+use function hrtime;
 use function preg_quote;
 use function spl_object_id;
 use function usleep;
 
 use const RD_KAFKA_PARTITION_UA;
+use const RD_KAFKA_RESP_ERR__QUEUE_FULL;
+use const RD_KAFKA_RESP_ERR__TIMED_OUT;
 use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
 final class KafkaProducerWrapperTest extends TestCase
 {
+    public function testEnqueueDefersCallbacksAndPollingReportsDeliveryFailure(): void
+    {
+        $config = self::createConfig();
+        $reports = new class implements Countable {
+            /** @var list<string|null> */
+            public array $values = [];
+
+            public function count(): int
+            {
+                return count($this->values);
+            }
+        };
+        $config->getConf()->setDrMsgCb(static function (Producer $producer, Message $message) use ($reports): void {
+            $reports->values[] = $message->opaque;
+        });
+        $producer = new KafkaProducerWrapper($config);
+        $producer->enqueue(new ProducerRecord('enqueue-only', 'payload', correlationId: 'record-1'));
+        self::assertCount(0, $reports);
+
+        try {
+            for ($attempt = 0; $attempt < 50; $attempt++) {
+                $producer->poll(100);
+            }
+        } catch (DeliveryFailed $failure) {
+            self::assertSame(['record-1'], $reports->values);
+            self::assertSame(-192, $failure->errorCode);
+            self::assertSame('enqueue-only', $failure->topicName);
+
+            return;
+        }
+
+        self::fail('Polling did not surface the expired record delivery report.');
+    }
+
+    public function testQueueFullIsRejectedWithoutChangingEarlierRecord(): void
+    {
+        $config = self::createConfig(messageTimeoutMs: 10000);
+        $config->set('queue.buffering.max.messages', 1);
+        $producer = new KafkaProducerWrapper($config);
+        $producer->enqueue(new ProducerRecord('queue-pressure', 'accepted'));
+
+        try {
+            $producer->enqueue(new ProducerRecord('queue-pressure', 'rejected'));
+        } catch (DeliveryFailed $failure) {
+            self::assertSame(RD_KAFKA_RESP_ERR__QUEUE_FULL, $failure->errorCode);
+            self::assertSame(1, $producer->getProducer()->getOutQLen());
+            self::assertStringContainsString('enqueue failed', $failure->getMessage());
+
+            return;
+        }
+
+        self::fail('A full native queue must reject a new submission.');
+    }
+
+    #[DataProvider('provideCorrelationUsesActivatedReportSettings')]
+    public function testCorrelationUsesActivatedReportSettings(bool $reportsOnlyErrors): void
+    {
+        $config = self::createConfig(messageTimeoutMs: 10000);
+        $config->set('delivery.report.only.error', $reportsOnlyErrors);
+        $producer = new KafkaProducerWrapper($config);
+        $native = $producer->getProducer();
+        $config->set('delivery.report.only.error', ! $reportsOnlyErrors);
+
+        if ($reportsOnlyErrors) {
+            try {
+                $producer->enqueue(new ProducerRecord('opaque-ownership', 'payload', correlationId: 'correlated'));
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame(
+                    'Opaque correlation requires delivery.report.only.error=false',
+                    $exception->getMessage(),
+                );
+                self::assertSame(0, $native->getOutQLen());
+                $producer->enqueue(new ProducerRecord('opaque-ownership', 'uncorrelated'));
+                self::assertSame(1, $native->getOutQLen());
+
+                return;
+            }
+
+            self::fail('Error-only delivery reports cannot safely own opaque correlation strings.');
+        }
+
+        $producer->enqueue(new ProducerRecord('opaque-ownership', 'payload', correlationId: 'correlated'));
+        self::assertSame(1, $native->getOutQLen());
+    }
+
+    /** @return Generator<string, array{bool}> */
+    public static function provideCorrelationUsesActivatedReportSettings(): Generator
+    {
+        yield 'error reports only' => [true];
+        yield 'all reports' => [false];
+    }
+
+    #[DataProvider('provideFlushUsesOneWaitBudget')]
+    public function testFlushUsesOneWaitBudget(string $flavor): void
+    {
+        $config = self::createConfig(messageTimeoutMs: 10000);
+        $producer = $flavor === 'wrapper' ? new KafkaProducerWrapper($config) : new KafkaProducer($config);
+        $producer->produce('flush-budget', null, 'pending');
+        $startedAt = hrtime(true);
+
+        try {
+            $producer->flushMessages(200);
+        } catch (DeliveryFailed $failure) {
+            $elapsedMs = (hrtime(true) - $startedAt) / 1_000_000;
+            self::assertSame(RD_KAFKA_RESP_ERR__TIMED_OUT, $failure->errorCode);
+            // Allow scheduling overhead, but not the old ten complete timeout waits.
+            self::assertLessThan(1500, $elapsedMs);
+
+            return;
+        }
+
+        self::fail('An unavailable broker must leave this delivery pending at the flush deadline.');
+    }
+
+    /** @return Generator<string, array{string}> */
+    public static function provideFlushUsesOneWaitBudget(): Generator
+    {
+        yield 'wrapper' => ['wrapper'];
+        yield 'deprecated producer' => ['deprecated'];
+    }
+
+    public function testUnusedCloseDoesNotInitializeProducerAndIsIdempotent(): void
+    {
+        $config = self::createConfig();
+        $config->set(ProducerConfig::ENABLE_IDEMPOTENCE_CONFIG, true);
+        $config->set(ProducerConfig::ACKS_CONFIG, '0');
+        // Native construction would reject these incompatible settings.
+        $producer = new KafkaProducerWrapper($config);
+        $producer->poll();
+        $producer->close();
+        $producer->close();
+        $producer->flushMessages();
+
+        $this->expectException(LogicException::class);
+        $producer->getProducer();
+    }
+
+    #[DataProvider('provideClosedProducerRejectsWork')]
+    public function testClosedProducerRejectsWork(string $operation): void
+    {
+        $producer = new KafkaProducerWrapper(self::createConfig());
+        $producer->close();
+
+        $this->expectException(LogicException::class);
+        if ($operation === 'enqueue') {
+            $producer->enqueue(new ProducerRecord('closed', 'payload'));
+        } elseif ($operation === 'produce') {
+            $producer->produce('closed', null, 'payload');
+        } else {
+            $producer->poll();
+        }
+    }
+
+    /** @return Generator<string, array{string}> */
+    public static function provideClosedProducerRejectsWork(): Generator
+    {
+        yield 'enqueue' => ['enqueue'];
+        yield 'produce' => ['produce'];
+        yield 'poll' => ['poll'];
+    }
+
+    public function testCloseTimeoutLeavesProducerAvailableForRetry(): void
+    {
+        $producer = new KafkaProducerWrapper(self::createConfig(messageTimeoutMs: 10000));
+        $producer->enqueue(new ProducerRecord('close-timeout', 'pending'));
+        $native = $producer->getProducer();
+
+        try {
+            $producer->close(0);
+        } catch (DeliveryFailed $failure) {
+            self::assertSame(RD_KAFKA_RESP_ERR__TIMED_OUT, $failure->errorCode);
+            self::assertSame($native, $producer->getProducer());
+            $producer->poll();
+
+            return;
+        }
+
+        self::fail('Close cannot succeed while the native queue is still pending.');
+    }
+
+    public function testTombstoneCorrelationAndSuccessfulClose(): void
+    {
+        $config = self::createConfig('127.0.0.1:9092', 10000, 'all');
+        $reports = [];
+        $config->getConf()->setDrMsgCb(static function (Producer $producer, Message $message) use (&$reports): void {
+            $reports[] = [$message->err, $message->payload, $message->key, $message->opaque, $message->partition];
+        });
+        $producer = new KafkaProducerWrapper($config);
+        $producer->enqueue(new ProducerRecord(
+            'tombstone-delivery',
+            null,
+            key: 'deleted',
+            partition: 0,
+            correlationId: 'delete-1',
+        ));
+        $nativeReference = WeakReference::create($producer->getProducer());
+        $producer->close(5000);
+
+        self::assertSame([[RD_KAFKA_RESP_ERR_NO_ERROR, null, 'deleted', 'delete-1', 0]], $reports);
+        self::assertNull($nativeReference->get());
+
+        $this->expectException(LogicException::class);
+        $producer->getProducer();
+    }
+
     #[DataProvider('provideNativeFlushDoesNotHideDeliveryFailure')]
     public function testNativeFlushDoesNotHideDeliveryFailure(string $flavor): void
     {

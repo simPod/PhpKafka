@@ -24,6 +24,58 @@ However, they are copied from Java API and not all are applicable to librdkafka.
 
 ### Producer
 
+#### Submission, progress, and explicit shutdown
+
+`enqueue()` accepts a serialized record into the local native queue without running application
+callbacks. It does not wait for broker delivery. Call `poll()` regularly while the producer is idle,
+and use `flushMessages()` to drain and check delivery before acknowledging dependent source work.
+The existing `produce()` convenience method enqueues and then calls `poll(0)`; a callback exception
+from that method can occur **after** its record was accepted.
+
+```php
+use RdKafka\Message;
+use RdKafka\Producer;
+use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
+use SimPod\Kafka\Clients\Producer\ProducerConfig;
+use SimPod\Kafka\Clients\Producer\ProducerRecord;
+
+$config = new ProducerConfig();
+$config->set(ProducerConfig::BOOTSTRAP_SERVERS_CONFIG, '127.0.0.1:9092');
+$config->set(ProducerConfig::ENABLE_IDEMPOTENCE_CONFIG, true);
+$config->getConf()->setDrMsgCb(static function (Producer $producer, Message $report): void {
+    // $report->opaque contains the record's correlationId.
+    // Observe $report->err; success has the guarantees of the configured acks setting.
+});
+$producer = new KafkaProducerWrapper($config);
+
+$producer->enqueue(new ProducerRecord('events', '{"type":"example"}', key: 'event-123', correlationId: '123'));
+$producer->poll();
+$producer->close(5000); // Flushes, reports failure, and releases the wrapper's native reference.
+```
+
+Successful close is idempotent. It rejects later `enqueue()`, `produce()`, `poll()`, and
+`getProducer()` calls. An unused producer closes without creating a native client. If close fails,
+the wrapper stays open: a flush timeout can be retried, while a terminal delivery failure requires
+a new producer. Handle these failures in application code; do not acknowledge source work merely
+because shutdown was attempted. An existing exit callback still runs when the wrapper is destroyed.
+
+`flushMessages($timeoutMs)` now makes one native flush attempt with that wait budget, rather than
+ten full waits. Application callbacks can add execution time. A timeout leaves delivery outcomes
+unknown; it does not justify resending every record. Queue-full enqueue rejection preserves the
+native error code, and the wrapper does not retry it automatically.
+
+`ProducerRecord` and `produce()` accept a null value for a Kafka tombstone. Empty strings remain
+ordinary values. Partition defaults to native selection in `ProducerRecord`; headers, timestamps,
+and correlation are optional. Native access is an escape hatch: references retained by the caller
+can still submit records after wrapper close and must be managed by that caller.
+
+Opaque correlation requires a native build with the `purge()` API and
+`delivery.report.only.error=false`. Unsupported combinations are rejected before enqueue.
+The latter restriction avoids an ext-rdkafka 6 opaque-string ownership issue: successful records
+with error-only reports do not run the native callback that releases their correlation strings.
+Settings apply when the lazy native client is first created; later configuration changes do not
+change that client or these capability checks.
+
 #### Idempotence and delivery results
 
 These mechanisms answer different questions:
