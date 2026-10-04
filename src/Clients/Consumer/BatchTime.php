@@ -6,6 +6,7 @@ namespace SimPod\Kafka\Clients\Consumer;
 
 use DateTimeImmutable;
 
+/** @deprecated Retained for compatibility. ConsumerRunner uses monotonic BatchLimits deadlines. */
 final class BatchTime
 {
     public int $endMsTimestamp;

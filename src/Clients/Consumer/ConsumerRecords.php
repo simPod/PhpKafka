@@ -11,9 +11,10 @@ use SimPod\Kafka\Clients\Consumer\Exception\RecordNotFound;
 use function array_key_last;
 use function count;
 
+/** @deprecated Mutable compatibility accumulator. Prefer ConsumerBatch. */
 final class ConsumerRecords implements Countable
 {
-    /** @var Message[] */
+    /** @var list<Message> */
     private array $records = [];
 
     public function add(Message $record): void
@@ -46,11 +47,16 @@ final class ConsumerRecords implements Countable
 
     public function getLast(): Message
     {
-        $lastRecord = $this->records[array_key_last($this->records)] ?? null;
-        if ($lastRecord === null) {
+        $lastKey = array_key_last($this->records);
+        if ($lastKey === null) {
             throw RecordNotFound::setEmpty();
         }
 
-        return $lastRecord;
+        return $this->records[$lastKey];
+    }
+
+    public function toBatch(): ConsumerBatch
+    {
+        return new ConsumerBatch($this->records);
     }
 }

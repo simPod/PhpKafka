@@ -4,82 +4,28 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Clients\Consumer;
 
-use DateTimeImmutable;
+use InvalidArgumentException;
+use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RdKafka\KafkaConsumer as RdKafkaConsumer;
 use RdKafka\Message;
-use RdKafka\TopicPartition;
-use SimPod\Kafka\Clients\Consumer\Exception\IncompatibleStatus;
 
-use function array_map;
-use function pcntl_signal_dispatch;
-use function rd_kafka_err2str;
-use function sprintf;
-
-use const RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS;
-use const RD_KAFKA_RESP_ERR__PARTITION_EOF;
-use const RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS;
-use const RD_KAFKA_RESP_ERR__TIMED_OUT;
-use const RD_KAFKA_RESP_ERR_NO_ERROR;
-
+/** Native compatibility adapter. Prefer ConsumerRunner for managed group subscriptions. */
 final class KafkaConsumer extends RdKafkaConsumer
 {
-    use WithSignalControl;
+    private readonly ConsumerLoop $loop;
 
-    private LoggerInterface $logger;
-
-    private bool $shouldRun = true;
+    private readonly bool $autoCommit;
 
     public function __construct(ConsumerConfig $config, LoggerInterface|null $logger = null)
     {
-        $this->logger = $logger ?? new NullLogger();
-
-        $this->setupInternalTerminationSignal($config);
-
-        $config->getConf()->setErrorCb(
-            function (RdKafkaConsumer $kafka, int $err, string $reason): void {
-                $this->logger->error(
-                    sprintf('Kafka error: "%s": "%s"', rd_kafka_err2str($err), $reason),
-                    ['err' => $err],
-                );
-            },
-        );
-
-        $rebalanceCallback =
-            function (RdKafkaConsumer $kafka, int $err, array|null $partitions = null): void {
-                /** @phpstan-var array<string, TopicPartition>|null $partitions */
-                switch ($err) {
-                    case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
-                        $this->logger->debug(
-                            'Assigning partitions',
-                            $partitions === null ? [] : array_map(
-                                static fn (TopicPartition $partition): string => (string) $partition->getPartition(),
-                                $partitions,
-                            ),
-                        );
-                        $kafka->assign($partitions);
-
-                        break;
-                    case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS:
-                        $this->logger->debug(
-                            'Revoking partitions',
-                            $partitions === null ? [] : array_map(
-                                static fn (TopicPartition $partition): string => (string) $partition->getPartition(),
-                                $partitions,
-                            ),
-                        );
-                        $kafka->assign();
-
-                        break;
-                    default:
-                        $this->logger->error(sprintf('Rebalancing failed: %s (%d)', rd_kafka_err2str($err), $err));
-                        $kafka->assign();
-                }
-            };
-        $config->getConf()->setRebalanceCb($rebalanceCallback);
+        $this->autoCommit = $config->get('enable.auto.commit') !== 'false';
+        // Preserve all user callbacks and let librdkafka handle ordinary group assignment.
 
         parent::__construct($config->getConf());
+
+        $this->loop = new ConsumerLoop($this, $logger ?? new NullLogger());
     }
 
     /**
@@ -93,11 +39,23 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable|null $onPartitionEof = null,
         callable|null $onTimedOut = null,
     ): void {
-        $this->doStart($timeoutMs, $onSuccess, $onPartitionEof, $onTimedOut);
+        $this->loop->run(
+            new BatchLimits($timeoutMs, $timeoutMs, 1),
+            static function (ConsumerBatch $batch) use ($onSuccess): void {
+                foreach ($batch as $message) {
+                    $onSuccess($message);
+                }
+            },
+            false,
+            $onPartitionEof,
+            $onTimedOut,
+        );
     }
 
     /**
-     * @param (callable(Message):void)|null         $processRecord
+     * @deprecated Use ConsumerRunner::runBatch() for group subscriptions.
+     *
+     * @param (callable(Message):void)|null $processRecord
      * @param (callable(ConsumerRecords):void)|null $onBatchProcessed
      */
     public function startBatch(
@@ -106,132 +64,62 @@ final class KafkaConsumer extends RdKafkaConsumer
         callable|null $processRecord = null,
         callable|null $onBatchProcessed = null,
     ): void {
-        $batchTime = new BatchTime($timeoutMs, new DateTimeImmutable());
-        $consumerRecords = new ConsumerRecords();
+        if ($processRecord === null && $onBatchProcessed === null) {
+            throw new InvalidArgumentException('A batch processing handler is required');
+        }
 
-        $this->doStart(
-            $timeoutMs,
-            function (Message $message) use (
-                $maxBatchSize,
-                $timeoutMs,
-                $batchTime,
-                $processRecord,
-                $onBatchProcessed,
-                $consumerRecords,
-            ): void {
-                $consumerRecords->add($message);
-                if ($processRecord !== null) {
-                    $processRecord($message);
-                }
+        if ($this->autoCommit) {
+            throw new InvalidArgumentException('Legacy batching requires enable.auto.commit=false');
+        }
 
-                if ($consumerRecords->count() === $maxBatchSize) {
-                    if ($onBatchProcessed !== null && ! $consumerRecords->isEmpty()) {
-                        $onBatchProcessed($consumerRecords);
+        if ($this->getSubscription() !== []) {
+            throw new LogicException('Subscribed batching requires ConsumerRunner to own the rebalance callback');
+        }
+
+        if ($this->getAssignment() === []) {
+            throw new LogicException('Legacy batching requires a fixed manual assignment');
+        }
+
+        $this->loop->run(
+            new BatchLimits($timeoutMs, $timeoutMs, $maxBatchSize),
+            static function (ConsumerBatch $batch) use ($processRecord, $onBatchProcessed): void {
+                $records = new ConsumerRecords();
+                foreach ($batch as $message) {
+                    $records->add($message);
+                    if ($processRecord !== null) {
+                        $processRecord($message);
                     }
-
-                    $consumerRecords->clear();
-                    $batchTime->reset($timeoutMs, new DateTimeImmutable());
-
-                    return;
                 }
 
-                $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords)();
+                if ($onBatchProcessed !== null) {
+                    $onBatchProcessed($records);
+                }
             },
-            $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
-            $this->checkBatchTimedOut($timeoutMs, $batchTime, $onBatchProcessed, $consumerRecords),
+            false,
         );
+    }
+
+    public function commitBatch(ConsumerBatch|ConsumerRecords $batch): void
+    {
+        if ($batch->count() === 0) {
+            return;
+        }
+
+        $this->commit(($batch instanceof ConsumerRecords ? $batch->toBatch() : $batch)->nextOffsets());
+    }
+
+    public function requestStop(): void
+    {
+        $this->loop->requestStop();
     }
 
     public function shutdown(): void
     {
-        $this->logger->debug('Shutting down');
-
-        $this->stop();
+        $this->requestStop();
     }
 
     public function stop(): void
     {
-        $this->shouldRun = false;
-    }
-
-    /**
-     * @param callable(Message):void $onSuccess
-     * @param (callable():void)|null       $onPartitionEof
-     * @param (callable():void)|null       $onTimedOut
-     */
-    private function doStart(
-        int $timeoutMs,
-        callable $onSuccess,
-        callable|null $onPartitionEof = null,
-        callable|null $onTimedOut = null,
-    ): void {
-        $this->shouldRun = true;
-        $terminationCallback = fn () => $this->stop();
-        $this->registerSignals($terminationCallback);
-
-        while ($this->shouldRun) {
-            $message = $this->consume($timeoutMs);
-
-            switch ($message->err) {
-                case RD_KAFKA_RESP_ERR_NO_ERROR:
-                    $onSuccess($message);
-
-                    break;
-                case RD_KAFKA_RESP_ERR__PARTITION_EOF:
-                    if ($onPartitionEof !== null) {
-                        $onPartitionEof();
-                    }
-
-                    $this->logger->debug('No more messages. Will wait for more');
-
-                    break;
-                case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                    $this->logger->debug(sprintf('Timed out with timeout %d ms', $timeoutMs));
-                    if ($onTimedOut !== null) {
-                        $onTimedOut();
-                    }
-
-                    break;
-                default:
-                    $exception = IncompatibleStatus::fromMessage($message);
-                    $this->logger->error($exception->getMessage(), ['exception' => $exception]);
-            }
-
-            pcntl_signal_dispatch();
-        }
-
-        $this->degisterSignals();
-    }
-
-    /**
-     * @param callable(ConsumerRecords) : void|null $onBatchProcessed
-     *
-     * @return callable() : void
-     */
-    private function checkBatchTimedOut(
-        int $timeoutMs,
-        BatchTime $batchTime,
-        callable|null $onBatchProcessed,
-        ConsumerRecords $consumerRecords,
-    ): callable {
-        return static function () use (
-            $timeoutMs,
-            $batchTime,
-            $onBatchProcessed,
-            $consumerRecords,
-        ): void {
-            $remainingTimeout = $batchTime->endMsTimestamp - (new DateTimeImmutable())->getTimestamp() * 1000;
-
-            if ($remainingTimeout >= 0) {
-                return;
-            }
-
-            if ($onBatchProcessed !== null && ! $consumerRecords->isEmpty()) {
-                $onBatchProcessed($consumerRecords);
-            }
-
-            $consumerRecords->clear();
-            $batchTime->reset($timeoutMs, new DateTimeImmutable());
-        };
+        $this->requestStop();
     }
 }
