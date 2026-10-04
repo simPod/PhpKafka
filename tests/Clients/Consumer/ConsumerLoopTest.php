@@ -43,11 +43,13 @@ final class ConsumerLoopTest extends TestCase
                 return self::record($calls - 1, $calls === 1 ? 3 : 8);
             },
         );
-        $handled = false;
+        $processing = new class {
+            public bool $handled = false;
+        };
         $native->expects(self::once())->method('commit')->with(self::callback(
-            static function (array $offsets) use (&$handled): bool {
+            static function (array $offsets) use ($processing): bool {
                 /** @var list<TopicPartition> $offsets */
-                self::assertTrue($handled, 'Commit must follow processing');
+                self::assertTrue($processing->handled, 'Commit must follow processing');
                 self::assertCount(2, $offsets);
                 self::assertSame(0, $offsets[0]->getPartition());
                 self::assertSame(4, $offsets[0]->getOffset());
@@ -58,9 +60,9 @@ final class ConsumerLoopTest extends TestCase
             },
         ));
 
-        $loop->run(new BatchLimits(100, 1000, 10), static function (ConsumerBatch $batch) use (&$handled): void {
+        $loop->run(new BatchLimits(100, 1000, 10), static function (ConsumerBatch $batch) use ($processing): void {
             self::assertCount(2, $batch);
-            $handled = true;
+            $processing->handled = true;
         }, commitAfterProcessing: true);
     }
 

@@ -28,7 +28,7 @@ class Conf
     /** @param callable $callback */
     public function setStatsCb(callable $callback): void {}
 
-    /** @param callable $callback */
+    /** @param callable(KafkaConsumer, int, list<TopicPartition>|null):void $callback */
     public function setRebalanceCb(callable $callback): void {}
 
     /** @param callable $callback */

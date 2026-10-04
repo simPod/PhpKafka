@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimPod\Kafka\Tests\Clients\Consumer;
 
 use Closure;
+use Countable;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -19,6 +20,7 @@ use SimPod\Kafka\Clients\Consumer\ConsumerBatch;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 use SimPod\Kafka\Clients\Consumer\ConsumerRunner;
 use SimPod\Kafka\Clients\Consumer\KafkaConsumer as CompatibilityConsumer;
+use WeakReference;
 
 use function bin2hex;
 use function count;
@@ -189,22 +191,27 @@ final class ConsumerRunnerBrokerTest extends TestCase
 
         $configure = self::configure();
         $changed = false;
-        /** @var KafkaConsumer|null $native */
-        $native = null;
+        $observed = new class {
+            /** @var WeakReference<KafkaConsumer>|null */
+            public WeakReference|null $consumer = null;
+        };
         $startedAt = (int) hrtime(true);
         $runner = new ConsumerRunner(
-            static function (Conf $config) use ($configure, $topics, $startedAt, &$changed, &$native): void {
+            static function (Conf $config) use ($configure, $topics, $startedAt, &$changed, $observed): void {
                 $configure($config);
                 $config->set('partition.assignment.strategy', 'cooperative-sticky');
                 $config->set('statistics.interval.ms', '10');
                 $config->setStatsCb(
-                    static function (KafkaConsumer $consumer, string $statistics) use (
+                    static function (
+                        KafkaConsumer $consumer,
+                        string $statistics,
+                    ) use (
                         $topics,
                         $startedAt,
                         &$changed,
-                        &$native,
+                        $observed,
                     ): void {
-                        $native = $consumer;
+                        $observed->consumer = WeakReference::create($consumer);
                         if ((int) hrtime(true) - $startedAt > 15_000_000_000) {
                             throw new RuntimeException('Timed out waiting for a partial cooperative revocation');
                         }
@@ -240,7 +247,8 @@ final class ConsumerRunnerBrokerTest extends TestCase
                     $runner->requestStop();
                 },
             );
-            self::assertNotNull($native);
+            $native = $observed->consumer?->get();
+            self::assertInstanceOf(KafkaConsumer::class, $native);
             $assignment = $native->getAssignment();
             self::assertCount(1, $assignment, 'Only revoked partitions must be incrementally released');
             self::assertSame($topics[1], $assignment[0]->getTopic());
@@ -260,23 +268,36 @@ final class ConsumerRunnerBrokerTest extends TestCase
         $topic = self::uniqueName();
         self::publish($topic);
         $configure = self::configure();
-        $assignments = 0;
-        $rebalanceCallback =
-            static function (
-                KafkaConsumer $consumer,
-                int $error,
-                array|null $partitions = null,
-            ) use (&$assignments): void {
-                if ($error === RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS) {
-                    $assignments++;
-                    $consumer->assign($partitions);
-                } else {
-                    $consumer->assign();
-                }
-            };
-        $initialize = static function (Conf $config) use ($configure, $rebalanceCallback): void {
+        $assignmentState = new class implements Countable {
+            /** @var non-negative-int */
+            private int $assignments = 0;
+
+            public function recordAssignment(): void
+            {
+                $this->assignments++;
+            }
+
+            public function count(): int
+            {
+                return $this->assignments;
+            }
+        };
+        $initialize = static function (Conf $config) use ($configure, $assignmentState): void {
             $configure($config);
-            $config->setRebalanceCb($rebalanceCallback);
+            $config->setRebalanceCb(
+                static function (
+                    KafkaConsumer $consumer,
+                    int $error,
+                    array|null $partitions = null,
+                ) use ($assignmentState): void {
+                    if ($error === RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS) {
+                        $assignmentState->recordAssignment();
+                        $consumer->assign($partitions);
+                    } else {
+                        $consumer->assign();
+                    }
+                },
+            );
         };
         $runner = new ConsumerRunner($initialize);
         $runner->subscribe([$topic]);
@@ -288,17 +309,21 @@ final class ConsumerRunnerBrokerTest extends TestCase
             $runner->close();
         }
 
-        self::assertSame(0, $assignments);
+        self::assertCount(0, $assignmentState);
         $config = new ConsumerConfig();
         $initialize($config->getConf());
         $native = new CompatibilityConsumer($config);
         $native->subscribe([$topic]);
         try {
-            for ($attempt = 0; $attempt < 100 && $assignments === 0; $attempt++) {
+            for ($attempt = 0; $attempt < 100 && $assignmentState->count() === 0; $attempt++) {
                 $native->consume(100);
             }
 
-            self::assertSame(1, $assignments, 'A reusable initializer must keep ordinary native callback setup intact');
+            self::assertCount(
+                1,
+                $assignmentState,
+                'A reusable initializer must keep native callback setup intact',
+            );
         } finally {
             $native->close();
         }

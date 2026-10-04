@@ -22,7 +22,9 @@ final class KafkaConsumer extends RdKafkaConsumer
     {
         $this->autoCommit = $config->get('enable.auto.commit') !== 'false';
         // Preserve all user callbacks and let librdkafka handle ordinary group assignment.
+
         parent::__construct($config->getConf());
+
         $this->loop = new ConsumerLoop($this, $logger ?? new NullLogger());
     }
 
@@ -52,6 +54,7 @@ final class KafkaConsumer extends RdKafkaConsumer
 
     /**
      * @deprecated Use ConsumerRunner::runBatch() for group subscriptions.
+     *
      * @param (callable(Message):void)|null $processRecord
      * @param (callable(ConsumerRecords):void)|null $onBatchProcessed
      */

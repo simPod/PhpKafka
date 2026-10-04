@@ -47,12 +47,12 @@ final class ConsumerRecords implements Countable
 
     public function getLast(): Message
     {
-        $lastRecord = $this->records[array_key_last($this->records)] ?? null;
-        if ($lastRecord === null) {
+        $lastKey = array_key_last($this->records);
+        if ($lastKey === null) {
             throw RecordNotFound::setEmpty();
         }
 
-        return $lastRecord;
+        return $this->records[$lastKey];
     }
 
     public function toBatch(): ConsumerBatch

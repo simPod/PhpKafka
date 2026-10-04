@@ -11,7 +11,6 @@ use Psr\Log\NullLogger;
 use RdKafka\Conf;
 use RdKafka\KafkaConsumer;
 use RdKafka\Message;
-use RdKafka\TopicPartition;
 use RuntimeException;
 use WeakReference;
 
@@ -76,11 +75,14 @@ final class ConsumerRunner
 
         $reference = WeakReference::create($this);
         $config->setRebalanceCb(
-            static function (KafkaConsumer $consumer, int $error, array|null $partitions = null) use (
+            static function (
+                KafkaConsumer $consumer,
+                int $error,
+                array|null $partitions = null,
+            ) use (
                 $cooperative,
                 $reference,
             ): void {
-                /** @var list<TopicPartition>|null $partitions */
                 if ($error === RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS) {
                     if ($cooperative) {
                         $consumer->incrementalAssign($partitions ?? []);
@@ -98,14 +100,7 @@ final class ConsumerRunner
                         return;
                     }
 
-                    if ($error !== RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS) {
-                        $runner->loop->requestStop();
-
-                        throw new RuntimeException('Unexpected native rebalance error', $error);
-                    }
-
-                    // Drain the entire pending batch, including still-owned cooperative partitions.
-                    $runner->loop->flush();
+                    $runner->drainRevokedBatch($error);
                 } finally {
                     if ($cooperative) {
                         $consumer->incrementalUnassign($partitions ?? []);
@@ -183,5 +178,18 @@ final class ConsumerRunner
         if ($this->closed || $this->loop->isRunning()) {
             throw new LogicException('The consumer is closed or a run is active');
         }
+    }
+
+    /** Native queue callbacks run after construction, from consume() or close(). */
+    private function drainRevokedBatch(int $error): void
+    {
+        if ($error !== RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS) {
+            $this->loop->requestStop();
+
+            throw new RuntimeException('Unexpected native rebalance error', $error);
+        }
+
+        // Drain the entire pending batch, including still-owned cooperative partitions.
+        $this->loop->flush();
     }
 }

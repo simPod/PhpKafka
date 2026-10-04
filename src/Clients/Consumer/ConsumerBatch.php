@@ -15,8 +15,8 @@ use function count;
 use function max;
 use function substr;
 
-use const RD_KAFKA_RESP_ERR_NO_ERROR;
 use const PHP_INT_MAX;
+use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
 /** @implements IteratorAggregate<int, Message> */
 final class ConsumerBatch implements Countable, IteratorAggregate
