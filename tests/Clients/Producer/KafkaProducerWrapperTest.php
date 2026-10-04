@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimPod\Kafka\Tests\Clients\Producer;
 
+use Countable;
 use Generator;
 use InvalidArgumentException;
 use LogicException;
@@ -19,35 +20,44 @@ use SimPod\Kafka\Clients\Producer\ProducerConfig;
 use SimPod\Kafka\Clients\Producer\ProducerRecord;
 use WeakReference;
 
+use function count;
 use function hrtime;
 use function preg_quote;
 use function spl_object_id;
 use function usleep;
 
 use const RD_KAFKA_PARTITION_UA;
-use const RD_KAFKA_RESP_ERR_NO_ERROR;
 use const RD_KAFKA_RESP_ERR__QUEUE_FULL;
 use const RD_KAFKA_RESP_ERR__TIMED_OUT;
+use const RD_KAFKA_RESP_ERR_NO_ERROR;
 
 final class KafkaProducerWrapperTest extends TestCase
 {
     public function testEnqueueDefersCallbacksAndPollingReportsDeliveryFailure(): void
     {
         $config = self::createConfig();
-        $reports = [];
-        $config->getConf()->setDrMsgCb(static function (Producer $producer, Message $message) use (&$reports): void {
-            $reports[] = $message->opaque;
+        $reports = new class implements Countable {
+            /** @var list<string|null> */
+            public array $values = [];
+
+            public function count(): int
+            {
+                return count($this->values);
+            }
+        };
+        $config->getConf()->setDrMsgCb(static function (Producer $producer, Message $message) use ($reports): void {
+            $reports->values[] = $message->opaque;
         });
         $producer = new KafkaProducerWrapper($config);
         $producer->enqueue(new ProducerRecord('enqueue-only', 'payload', correlationId: 'record-1'));
-        self::assertSame([], $reports);
+        self::assertCount(0, $reports);
 
         try {
             for ($attempt = 0; $attempt < 50; $attempt++) {
                 $producer->poll(100);
             }
         } catch (DeliveryFailed $failure) {
-            self::assertSame(['record-1'], $reports);
+            self::assertSame(['record-1'], $reports->values);
             self::assertSame(-192, $failure->errorCode);
             self::assertSame('enqueue-only', $failure->topicName);
 
@@ -90,7 +100,10 @@ final class KafkaProducerWrapperTest extends TestCase
             try {
                 $producer->enqueue(new ProducerRecord('opaque-ownership', 'payload', correlationId: 'correlated'));
             } catch (InvalidArgumentException $exception) {
-                self::assertSame('Opaque correlation requires delivery.report.only.error=false', $exception->getMessage());
+                self::assertSame(
+                    'Opaque correlation requires delivery.report.only.error=false',
+                    $exception->getMessage(),
+                );
                 self::assertSame(0, $native->getOutQLen());
                 $producer->enqueue(new ProducerRecord('opaque-ownership', 'uncorrelated'));
                 self::assertSame(1, $native->getOutQLen());
