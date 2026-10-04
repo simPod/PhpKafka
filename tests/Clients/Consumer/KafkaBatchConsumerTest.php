@@ -6,17 +6,20 @@ namespace SimPod\Kafka\Tests\Clients\Consumer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use RdKafka\Message;
-use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
-use SimPod\Kafka\Clients\Consumer\ConsumerRecords;
-use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
+use RdKafka\Conf;
+use RdKafka\KafkaConsumer;
+use RuntimeException;
+use SimPod\Kafka\Clients\Consumer\BatchLimits;
+use SimPod\Kafka\Clients\Consumer\ConsumerBatch;
+use SimPod\Kafka\Clients\Consumer\ConsumerRunner;
 use SimPod\Kafka\Clients\Producer\KafkaProducerWrapper;
 use SimPod\Kafka\Tests\Clients\Consumer\Fixture\TestProducer;
 
 use function gethostname;
+use function hrtime;
 use function mt_rand;
 
-#[CoversClass(KafkaConsumer::class)]
+#[CoversClass(ConsumerRunner::class)]
 #[CoversClass(KafkaProducerWrapper::class)]
 final class KafkaBatchConsumerTest extends TestCase
 {
@@ -30,31 +33,42 @@ final class KafkaBatchConsumerTest extends TestCase
             $testProducer->run(self::Topic, self::Payload);
         }
 
-        $consumer = new KafkaConsumer($this->getConfig());
+        unset($testProducer);
+        $consumer = new ConsumerRunner($this->configure(...));
         $consumer->subscribe([self::Topic]);
 
-        $consumer->startBatch(
-            90,
-            10000,
-            static function (Message $message): void {
-                self::assertSame(self::Payload, $message->payload);
-            },
-            static function (ConsumerRecords $consumerRecords) use ($consumer): void {
-                self::assertCount(90, $consumerRecords);
+        try {
+            $consumer->runBatch(
+                new BatchLimits(1000, 10000, 90),
+                static function (ConsumerBatch $batch) use ($consumer): void {
+                    self::assertCount(90, $batch);
+                    foreach ($batch as $message) {
+                        self::assertSame(self::Payload, $message->payload);
+                    }
 
-                $consumer->shutdown();
-            },
-        );
+                    $consumer->requestStop();
+                },
+            );
+        } finally {
+            $consumer->close();
+        }
     }
 
-    private function getConfig(): ConsumerConfig
+    private function configure(Conf $config): void
     {
-        $consumerConfig = new ConsumerConfig();
-        $consumerConfig->set(ConsumerConfig::BOOTSTRAP_SERVERS_CONFIG, '127.0.0.1:9092');
-        $consumerConfig->set(ConsumerConfig::CLIENT_ID_CONFIG, gethostname());
-        $consumerConfig->set(ConsumerConfig::GROUP_ID_CONFIG, mt_rand());
-        $consumerConfig->set(ConsumerConfig::AUTO_OFFSET_RESET_CONFIG, 'earliest');
-
-        return $consumerConfig;
+        $startedAt = (int) hrtime(true);
+        $config->set('bootstrap.servers', '127.0.0.1:9092');
+        $config->set('client.id', (string) gethostname());
+        $config->set('group.id', (string) mt_rand());
+        $config->set('auto.offset.reset', 'earliest');
+        $config->set('enable.auto.commit', 'false');
+        $config->set('statistics.interval.ms', '10');
+        $config->setStatsCb(
+            static function (KafkaConsumer $consumer, string $statistics) use ($startedAt): void {
+                if ((int) hrtime(true) - $startedAt > 15_000_000_000) {
+                    throw new RuntimeException('Timed out waiting for the maximum-size consumer batch');
+                }
+            },
+        );
     }
 }
