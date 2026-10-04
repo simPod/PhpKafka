@@ -16,9 +16,19 @@ composer require simpod/kafka
 
 ## Config Constants
 
-Some config constants are provided like `ConsumerConfig`, `ProducerConfig` or `CommonClientConfigs`.
+`ConsumerConfig`, `ProducerConfig`, and `CommonClientConfigs` provide configuration key constants for
+librdkafka. Pass native property names and values to `set()`; the native library validates them.
+Raw keys and `getConf()` remain available for properties and callbacks that have no constant.
 
-However, they are copied from Java API and not all are applicable to librdkafka. Consult with librdkafka documentation before use.
+Legacy Java-only constants keep their original names and values for compatibility, but are marked
+`@deprecated` with a native alternative or an explanation when no equivalent exists. They are not
+translated automatically. For example, use `ConsumerConfig::FETCH_WAIT_MAX_MS_CONFIG` (`fetch.wait.max.ms`)
+instead of the unsupported `FETCH_MAX_WAIT_MS_CONFIG` (`fetch.max.wait.ms`).
+
+See [Configuration and migration](docs/configuration.md) for native defaults, supported aliases,
+Java migration mappings, and mixed-language partitioning. This guidance uses
+[librdkafka v2.6.1](https://github.com/confluentinc/librdkafka/blob/v2.6.1/CONFIGURATION.md), the CI version;
+available settings depend on the librdkafka version linked to your `ext-rdkafka` installation.
 
 ## Clients
 
