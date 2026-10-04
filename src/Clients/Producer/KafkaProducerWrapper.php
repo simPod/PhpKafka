@@ -6,12 +6,13 @@ namespace SimPod\Kafka\Clients\Producer;
 
 use Closure;
 use InvalidArgumentException;
+use LogicException;
 use RdKafka\Exception as RdKafkaException;
 use RdKafka\Message;
 use RdKafka\Producer;
 use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 
-use function assert;
+use function method_exists;
 use function sprintf;
 
 use const RD_KAFKA_PARTITION_UA;
@@ -26,6 +27,10 @@ class KafkaProducerWrapper
     private readonly DeliveryFailureState $deliveryFailureState;
 
     private bool $destructing = false;
+
+    private bool $closed = false;
+
+    private bool $reportsOnlyErrors = false;
 
     /** @var (Closure(self):void)|null */
     private readonly Closure|null $exitCallback;
@@ -50,14 +55,20 @@ class KafkaProducerWrapper
         ($this->exitCallback)($this);
     }
 
-    /** @throws RdKafkaException */
+    /**
+     * Native access can bypass enqueue and lifecycle rules. Retained native references remain caller-owned.
+     *
+     * @throws RdKafkaException
+     */
     public function getProducer(): Producer
     {
+        $this->assertOpen();
         if ($this->producer !== null) {
             return $this->producer;
         }
 
         $conf = $this->config->getConf();
+        $reportsOnlyErrors = ($conf->dump()['delivery.report.only.error'] ?? 'false') === 'true';
         $producer = new Producer($conf);
         $deliveryFailureState = $this->deliveryFailureState;
         $conf->addDeliveryObserver(
@@ -67,6 +78,7 @@ class KafkaProducerWrapper
             },
         );
         $this->producer = $producer;
+        $this->reportsOnlyErrors = $reportsOnlyErrors;
 
         return $producer;
     }
@@ -85,7 +97,7 @@ class KafkaProducerWrapper
     public function produce(
         string $topicName,
         int|null $partition,
-        string $value,
+        string|null $value,
         string|null $key = null,
         array|null $headers = null,
         int|null $timestampMs = null,
@@ -96,29 +108,74 @@ class KafkaProducerWrapper
             );
         }
 
+        $this->enqueue(new ProducerRecord($topicName, $value, $key, $partition, $headers, $timestampMs));
+        $this->poll();
+    }
+
+    /**
+     * Accept into the native queue without polling application callbacks. Success is not delivery confirmation.
+     * Queue-full rejection preserves the native error code and is not retried automatically.
+     *
+     * @throws DeliveryFailed
+     */
+    public function enqueue(ProducerRecord $record): void
+    {
+        $this->assertOpen();
         $this->deliveryFailureState->assertSuccessful();
+        if ($record->correlationId !== null && ! method_exists(Producer::class, 'purge')) {
+            throw new InvalidArgumentException('This ext-rdkafka build does not support opaque correlation');
+        }
 
         try {
             $producer = $this->getProducer();
-            $topic = $producer->newTopic($topicName);
+            if ($record->correlationId !== null && $this->reportsOnlyErrors) {
+                throw new InvalidArgumentException('Opaque correlation requires delivery.report.only.error=false');
+            }
+
+            $topic = $producer->newTopic($record->topicName);
+            if ($record->correlationId === null) {
+                $topic->producev(
+                    $record->partition ?? RD_KAFKA_PARTITION_UA,
+                    self::RdKafkaMsgFCopy,
+                    $record->value,
+                    $record->key,
+                    $record->headers,
+                    $record->timestampMs ?? 0,
+                );
+
+                return;
+            }
+
             $topic->producev(
-                $partition ?? RD_KAFKA_PARTITION_UA,
+                $record->partition ?? RD_KAFKA_PARTITION_UA,
                 self::RdKafkaMsgFCopy,
-                $value,
-                $key,
-                $headers,
-                $timestampMs ?? 0,
+                $record->value,
+                $record->key,
+                $record->headers,
+                $record->timestampMs ?? 0,
+                $record->correlationId,
             );
         } catch (RdKafkaException $exception) {
             throw new DeliveryFailed(
-                sprintf('Kafka enqueue failed for topic "%s": %s', $topicName, $exception->getMessage()),
+                sprintf('Kafka enqueue failed for topic "%s": %s', $record->topicName, $exception->getMessage()),
                 $exception->getCode(),
                 $exception,
-                $topicName,
+                $record->topicName,
             );
         }
+    }
 
-        $producer->poll(0);
+    /**
+     * Serve native callbacks and report delivery failures. Does not initialize an unused wrapper.
+     * Application callback exceptions propagate unchanged and do not prove enqueue rejection.
+     *
+     * @throws DeliveryFailed
+     */
+    public function poll(int $timeoutMs = 0): void
+    {
+        $this->assertOpen();
+        self::validateTimeout($timeoutMs);
+        $this->producer?->poll($timeoutMs);
         $this->deliveryFailureState->assertSuccessful();
     }
 
@@ -129,24 +186,49 @@ class KafkaProducerWrapper
      */
     public function flushMessages(int $timeoutMs = 10000): void
     {
+        self::validateTimeout($timeoutMs);
         if ($this->producer === null) {
             return;
         }
 
-        $result = null;
-        for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
-            $result = $this->producer->flush($timeoutMs);
-            if ($result === RD_KAFKA_RESP_ERR_NO_ERROR) {
-                break;
-            }
-        }
-
-        assert($result !== null);
+        $result = $this->producer->flush($timeoutMs);
 
         $this->deliveryFailureState->assertSuccessful(suppressReported: $this->destructing);
 
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-            throw new DeliveryFailed('Was unable to flush, messages might be lost!', $result);
+            throw new DeliveryFailed('Kafka flush did not complete; pending delivery outcomes remain unknown', $result);
+        }
+    }
+
+    /**
+     * Flush and release this wrapper's native reference. A failed close leaves it open for recovery.
+     * Successful close is idempotent and does not initialize an unused wrapper.
+     *
+     * @throws DeliveryFailed
+     */
+    public function close(int $timeoutMs = 10000): void
+    {
+        self::validateTimeout($timeoutMs);
+        if ($this->closed) {
+            return;
+        }
+
+        $this->flushMessages($timeoutMs);
+        $this->closed = true;
+        $this->producer = null;
+    }
+
+    private function assertOpen(): void
+    {
+        if ($this->closed) {
+            throw new LogicException('The producer is closed');
+        }
+    }
+
+    private static function validateTimeout(int $timeoutMs): void
+    {
+        if ($timeoutMs < 0) {
+            throw new InvalidArgumentException('Timeout must be non-negative');
         }
     }
 }

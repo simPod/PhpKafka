@@ -11,7 +11,6 @@ use RdKafka\Producer;
 use RdKafka\ProducerTopic;
 use SimPod\Kafka\Clients\Producer\Exception\DeliveryFailed;
 
-use function assert;
 use function sprintf;
 
 use const RD_KAFKA_PARTITION_UA;
@@ -78,7 +77,7 @@ class KafkaProducer extends Producer
     public function produce(
         string $topicName,
         int|null $partition,
-        string $value,
+        string|null $value,
         string|null $key = null,
         array|null $headers = null,
         int|null $timestampMs = null,
@@ -123,20 +122,16 @@ class KafkaProducer extends Producer
      */
     public function flushMessages(int $timeoutMs = 10000): void
     {
-        $result = null;
-        for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
-            $result = $this->flush($timeoutMs);
-            if ($result === RD_KAFKA_RESP_ERR_NO_ERROR) {
-                break;
-            }
+        if ($timeoutMs < 0) {
+            throw new InvalidArgumentException('Timeout must be non-negative');
         }
 
-        assert($result !== null);
+        $result = $this->flush($timeoutMs);
 
         $this->deliveryFailureState->assertSuccessful(suppressReported: $this->destructing);
 
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-            throw new DeliveryFailed('Was unable to flush, messages might be lost!', $result);
+            throw new DeliveryFailed('Kafka flush did not complete; pending delivery outcomes remain unknown', $result);
         }
     }
 }
