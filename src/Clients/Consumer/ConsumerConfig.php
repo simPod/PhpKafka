@@ -84,9 +84,7 @@ final class ConsumerConfig extends Config
 
     public const int  DEFAULT_FETCH_MAX_BYTES = 50 * 1024 * 1024;
 
-    /**
-     * @deprecated Unsupported Java key. Use fetch.wait.max.ms (FETCH_WAIT_MAX_MS_CONFIG).
-     */
+    /** @deprecated Unsupported Java key. Use fetch.wait.max.ms (FETCH_WAIT_MAX_MS_CONFIG). */
     public const string  FETCH_MAX_WAIT_MS_CONFIG = 'fetch.max.wait.ms';
 
     /** Maximum broker wait in milliseconds to fill a fetch response with fetch.min.bytes. Default: 500. */
@@ -101,9 +99,7 @@ final class ConsumerConfig extends Config
     /** <code>metadata.max.age.ms</code> */
     public const METADATA_MAX_AGE_CONFIG = CommonClientConfigs::METADATA_MAX_AGE_CONFIG;
 
-    /**
-     * Native alias for fetch.message.max.bytes: initial per-partition fetch size, increased for larger messages.
-     */
+    /** Native alias for fetch.message.max.bytes: initial per-partition fetch size, increased for larger messages. */
     public const string  MAX_PARTITION_FETCH_BYTES_CONFIG = 'max.partition.fetch.bytes';
 
     public const int  DEFAULT_MAX_PARTITION_FETCH_BYTES = 1 * 1024 * 1024;
@@ -140,24 +136,16 @@ final class ConsumerConfig extends Config
      */
     public const RETRY_BACKOFF_MS_CONFIG = CommonClientConfigs::RETRY_BACKOFF_MS_CONFIG;
 
-    /**
-     * @deprecated Unsupported Java key. No native sampling-window equivalent; statistics.interval.ms controls emission only.
-     */
+    /** @deprecated Unsupported Java key. No native sampling-window equivalent; statistics.interval.ms controls emission only. */
     public const METRICS_SAMPLE_WINDOW_MS_CONFIG = CommonClientConfigs::METRICS_SAMPLE_WINDOW_MS_CONFIG;
 
-    /**
-     * @deprecated Unsupported Java key. No native sampling-count equivalent.
-     */
+    /** @deprecated Unsupported Java key. No native sampling-count equivalent. */
     public const METRICS_NUM_SAMPLES_CONFIG = CommonClientConfigs::METRICS_NUM_SAMPLES_CONFIG;
 
-    /**
-     * @deprecated Unsupported Java key. No native metrics-recording-level equivalent.
-     */
+    /** @deprecated Unsupported Java key. No native metrics-recording-level equivalent. */
     public const METRICS_RECORDING_LEVEL_CONFIG = CommonClientConfigs::METRICS_RECORDING_LEVEL_CONFIG;
 
-    /**
-     * @deprecated Unsupported Java key. Use statistics.interval.ms and RdKafka\Conf::setStatsCb(); no reporter-class equivalent.
-     */
+    /** @deprecated Unsupported Java key. Use statistics.interval.ms and RdKafka\Conf::setStatsCb(); no reporter-class equivalent. */
     public const METRIC_REPORTER_CLASSES_CONFIG = CommonClientConfigs::METRIC_REPORTER_CLASSES_CONFIG;
 
     /**
@@ -167,11 +155,13 @@ final class ConsumerConfig extends Config
 
     /** @deprecated Unsupported Java key. No native deserializer equivalent; deserialize the key in PHP. */
     public const string KEY_DESERIALIZER_CLASS_CONFIG = 'key.deserializer';
+
     /** @deprecated No native deserializer equivalent; deserialize the key in PHP. */
     public const string KEY_DESERIALIZER_CLASS_DOC = 'Java deserializer classes are unsupported. Deserialize the message key in application code.';
 
     /** @deprecated Unsupported Java key. No native deserializer equivalent; deserialize the payload in PHP. */
     public const string VALUE_DESERIALIZER_CLASS_CONFIG = 'value.deserializer';
+
     /** @deprecated No native deserializer equivalent; deserialize the payload in PHP. */
     public const string VALUE_DESERIALIZER_CLASS_DOC = 'Java deserializer classes are unsupported. Deserialize the message payload in application code.';
 
@@ -183,11 +173,13 @@ final class ConsumerConfig extends Config
 
     /** @deprecated Unsupported Java key. No native global API timeout equivalent; pass timeouts to individual APIs. */
     public const string DEFAULT_API_TIMEOUT_MS_CONFIG = 'default.api.timeout.ms';
+
     /** @deprecated No native global API timeout equivalent; pass timeouts to individual APIs. */
     public const string DEFAULT_API_TIMEOUT_MS_DOC = 'Java default API timeouts are unsupported. Pass a timeout to native APIs that accept one.';
 
     /** @deprecated Unsupported Java key. No PHP interceptor-class equivalent; handle messages in application code. */
     public const string INTERCEPTOR_CLASSES_CONFIG = 'interceptor.classes';
+
     /** @deprecated No PHP interceptor-class equivalent; handle messages in application code. */
     public const string INTERCEPTOR_CLASSES_DOC = 'Java interceptor classes are unsupported. Native C interceptors are not a PHP class configuration option.';
 
@@ -197,9 +189,7 @@ final class ConsumerConfig extends Config
     /** @deprecated Java default for an unsupported key; no native equivalent. */
     public const true  DEFAULT_EXCLUDE_INTERNAL_TOPICS = true;
 
-    /**
-     * @deprecated Unsupported Java key. No native leave-on-close switch; group.instance.id supports static membership.
-     */
+    /** @deprecated Unsupported Java key. No native leave-on-close switch; group.instance.id supports static membership. */
     public const string LEAVE_GROUP_ON_CLOSE_CONFIG = 'internal.leave.group.on.close';
 
     /** <code>isolation.level</code> */

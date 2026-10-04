@@ -59,6 +59,7 @@ final class ConfigTest extends TestCase
             'enable.auto.offset.store',
             'false',
         ];
+
         yield 'native fetch wait' => [
             ConsumerConfig::class,
             ConsumerConfig::FETCH_WAIT_MAX_MS_CONFIG,
@@ -66,6 +67,7 @@ final class ConfigTest extends TestCase
             'fetch.wait.max.ms',
             '123',
         ];
+
         yield 'consumer prefetch count' => [
             ConsumerConfig::class,
             ConsumerConfig::QUEUED_MIN_MESSAGES_CONFIG,
@@ -73,6 +75,7 @@ final class ConfigTest extends TestCase
             'queued.min.messages',
             '50',
         ];
+
         yield 'consumer prefetch kilobytes' => [
             ConsumerConfig::class,
             ConsumerConfig::QUEUED_MAX_MESSAGES_KBYTES_CONFIG,
@@ -80,6 +83,7 @@ final class ConfigTest extends TestCase
             'queued.max.messages.kbytes',
             '1024',
         ];
+
         yield 'native assignment name' => [
             ConsumerConfig::class,
             ConsumerConfig::PARTITION_ASSIGNMENT_STRATEGY_CONFIG,
@@ -87,6 +91,7 @@ final class ConfigTest extends TestCase
             'partition.assignment.strategy',
             'roundrobin',
         ];
+
         yield 'partition fetch alias' => [
             ConsumerConfig::class,
             ConsumerConfig::MAX_PARTITION_FETCH_BYTES_CONFIG,
@@ -94,6 +99,7 @@ final class ConfigTest extends TestCase
             'fetch.message.max.bytes',
             '2097152',
         ];
+
         yield 'producer queue count' => [
             ProducerConfig::class,
             ProducerConfig::QUEUE_BUFFERING_MAX_MESSAGES_CONFIG,
@@ -101,6 +107,7 @@ final class ConfigTest extends TestCase
             'queue.buffering.max.messages',
             '75',
         ];
+
         yield 'producer queue kilobytes' => [
             ProducerConfig::class,
             ProducerConfig::QUEUE_BUFFERING_MAX_KBYTES_CONFIG,
@@ -108,6 +115,7 @@ final class ConfigTest extends TestCase
             'queue.buffering.max.kbytes',
             '4096',
         ];
+
         yield 'native request size' => [
             ProducerConfig::class,
             ProducerConfig::MESSAGE_MAX_BYTES_CONFIG,
@@ -115,6 +123,7 @@ final class ConfigTest extends TestCase
             'message.max.bytes',
             '2097152',
         ];
+
         yield 'linger alias' => [
             ProducerConfig::class,
             ProducerConfig::LINGER_MS_CONFIG,
@@ -122,6 +131,7 @@ final class ConfigTest extends TestCase
             'queue.buffering.max.ms',
             '12',
         ];
+
         yield 'retry alias' => [
             ProducerConfig::class,
             ProducerConfig::RETRIES_CONFIG,
@@ -129,6 +139,7 @@ final class ConfigTest extends TestCase
             'message.send.max.retries',
             '7',
         ];
+
         yield 'compression alias' => [
             ProducerConfig::class,
             ProducerConfig::COMPRESSION_TYPE_CONFIG,
@@ -136,6 +147,7 @@ final class ConfigTest extends TestCase
             'compression.codec',
             'lz4',
         ];
+
         yield 'bootstrap alias' => [
             CommonClientConfigs::class,
             CommonClientConfigs::BOOTSTRAP_SERVERS_CONFIG,
@@ -143,6 +155,7 @@ final class ConfigTest extends TestCase
             'metadata.broker.list',
             '127.0.0.1:9092',
         ];
+
         yield 'socket send buffer' => [
             CommonClientConfigs::class,
             CommonClientConfigs::SOCKET_SEND_BUFFER_BYTES_CONFIG,
@@ -150,6 +163,7 @@ final class ConfigTest extends TestCase
             'socket.send.buffer.bytes',
             '65536',
         ];
+
         yield 'socket receive buffer' => [
             CommonClientConfigs::class,
             CommonClientConfigs::SOCKET_RECEIVE_BUFFER_BYTES_CONFIG,
@@ -157,6 +171,7 @@ final class ConfigTest extends TestCase
             'socket.receive.buffer.bytes',
             '65536',
         ];
+
         yield 'socket timeout' => [
             CommonClientConfigs::class,
             CommonClientConfigs::SOCKET_TIMEOUT_MS_CONFIG,
@@ -164,6 +179,7 @@ final class ConfigTest extends TestCase
             'socket.timeout.ms',
             '15000',
         ];
+
         yield 'statistics emission' => [
             CommonClientConfigs::class,
             CommonClientConfigs::STATISTICS_INTERVAL_MS_CONFIG,
@@ -202,6 +218,7 @@ final class ConfigTest extends TestCase
             'auto.offset.reset',
             'error',
         ];
+
         yield 'Java-compatible partitioner' => [
             ProducerConfig::class,
             ProducerConfig::PARTITIONER_CONFIG,
@@ -209,6 +226,7 @@ final class ConfigTest extends TestCase
             'partitioner',
             'murmur2_random',
         ];
+
         yield 'delivery timeout alias' => [
             ProducerConfig::class,
             ProducerConfig::DELIVERY_TIMEOUT_MS_CONFIG,
@@ -216,6 +234,7 @@ final class ConfigTest extends TestCase
             'message.timeout.ms',
             '12345',
         ];
+
         yield 'acknowledgment alias' => [
             ProducerConfig::class,
             ProducerConfig::ACKS_CONFIG,
@@ -245,11 +264,13 @@ final class ConfigTest extends TestCase
             ConsumerConfig::FETCH_MAX_WAIT_MS_CONFIG,
             '100',
         ];
+
         yield 'Java partitioner class key is not translated' => [
             ProducerConfig::class,
             ProducerConfig::PARTITIONER_CLASS_CONFIG,
             'org.apache.kafka.clients.producer.internals.DefaultPartitioner',
         ];
+
         yield 'Java offset reset value is not translated' => [
             ConsumerConfig::class,
             ConsumerConfig::AUTO_OFFSET_RESET_CONFIG,

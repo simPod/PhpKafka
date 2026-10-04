@@ -32,35 +32,48 @@ final class CommonClientConfigs extends Config
     public const string DEFAULT_SECURITY_PROTOCOL = 'PLAINTEXT';
     public const string METADATA_MAX_AGE_CONFIG = 'metadata.max.age.ms';
     public const string METADATA_MAX_AGE_DOC = 'Metadata cache maximum age in milliseconds. Defaults to three times <code>topic.metadata.refresh.interval.ms</code> (900000 ms in librdkafka v2.6.1).';
+
     /** @deprecated Unsupported Java key. Use statistics.interval.ms and RdKafka\Conf::setStatsCb(); no reporter-class equivalent. */
     public const string METRIC_REPORTER_CLASSES_CONFIG = 'metric.reporters';
+
     /** @deprecated No native reporter-class equivalent. Use statistics.interval.ms and RdKafka\Conf::setStatsCb(). */
     public const string METRIC_REPORTER_CLASSES_DOC = 'Java metrics reporters are unsupported. Configure native statistics with <code>statistics.interval.ms</code> and <code>RdKafka\Conf::setStatsCb()</code>.';
+
     /** @deprecated Unsupported Java key. No native sampling-count equivalent. */
     public const string METRICS_NUM_SAMPLES_CONFIG = 'metrics.num.samples';
+
     /** @deprecated No native sampling-count equivalent. */
     public const string METRICS_NUM_SAMPLES_DOC = 'Java metrics sample counts are unsupported; there is no native equivalent.';
+
     /** @deprecated Unsupported Java key. No native metrics-recording-level equivalent. */
     public const string METRICS_RECORDING_LEVEL_CONFIG = 'metrics.recording.level';
+
     /** @deprecated No native metrics-recording-level equivalent. */
     public const string METRICS_RECORDING_LEVEL_DOC = 'Java metrics recording levels are unsupported; there is no native equivalent.';
+
     /** @deprecated Unsupported Java key. No native sampling-window equivalent; statistics.interval.ms controls emission only. */
     public const string METRICS_SAMPLE_WINDOW_MS_CONFIG = 'metrics.sample.window.ms';
+
     /** @deprecated No native sampling-window equivalent; statistics.interval.ms controls emission only. */
     public const string METRICS_SAMPLE_WINDOW_MS_DOC = 'Java metrics sampling windows are unsupported. <code>statistics.interval.ms</code> controls native statistics emission, not a sampling window.';
+
     /** @deprecated Unsupported Java key. Use socket.receive.buffer.bytes (0 selects the OS default). */
     public const string RECEIVE_BUFFER_CONFIG = 'receive.buffer.bytes';
+
     /** @deprecated Use socket.receive.buffer.bytes (0 selects the OS default). */
     public const string RECEIVE_BUFFER_DOC = 'Unsupported Java key. Use <code>socket.receive.buffer.bytes</code> for the broker socket receive buffer in bytes; 0 selects the OS default.';
+
     /** @deprecated Java lower bound. Native socket.receive.buffer.bytes has a lower bound of 0. */
     public const int RECEIVE_BUFFER_LOWER_BOUND = -1;
     public const string RECONNECT_BACKOFF_MAX_MS_CONFIG = 'reconnect.backoff.max.ms';
     public const string RECONNECT_BACKOFF_MAX_MS_DOC = 'Maximum reconnect backoff in milliseconds. The initial <code>reconnect.backoff.ms</code> increases exponentially up to this value, with -25% to +50% jitter.';
     public const string RECONNECT_BACKOFF_MS_CONFIG = 'reconnect.backoff.ms';
     public const string RECONNECT_BACKOFF_MS_DOC = 'Initial reconnect backoff in milliseconds, with -25% to +50% jitter. Increases exponentially up to <code>reconnect.backoff.max.ms</code>. 0 disables the backoff.';
+
     /** Producer-only broker acknowledgment timeout. For network timeouts use socket.timeout.ms. */
     public const string REQUEST_TIMEOUT_MS_CONFIG = 'request.timeout.ms';
     public const string REQUEST_TIMEOUT_MS_DOC = 'Producer request acknowledgment timeout in milliseconds, enforced by the broker only when <code>acks</code> is not 0. This is not a consumer or socket timeout.';
+
     /** Producer-only native alias for message.send.max.retries. */
     public const string RETRIES_CONFIG = 'retries';
     public const string RETRIES_DOC = 'Alias for <code>message.send.max.retries</code>: maximum retries for a failed produced message. Retries can reorder messages unless <code>enable.idempotence=true</code>.';
@@ -74,10 +87,13 @@ final class CommonClientConfigs extends Config
     public const string SASL_PASSWORD_DOC = 'SASL password for use with PLAIN and SCRAM mechanisms.';
     public const string SECURITY_PROTOCOL_CONFIG = 'security.protocol';
     public const string SECURITY_PROTOCOL_DOC = 'Protocol used to communicate with brokers: plaintext (default), ssl, sasl_plaintext, or sasl_ssl. Availability depends on the native build.';
+
     /** @deprecated Unsupported Java key. Use socket.send.buffer.bytes (0 selects the OS default). */
     public const string SEND_BUFFER_CONFIG = 'send.buffer.bytes';
+
     /** @deprecated Use socket.send.buffer.bytes (0 selects the OS default). */
     public const string SEND_BUFFER_DOC = 'Unsupported Java key. Use <code>socket.send.buffer.bytes</code> for the broker socket send buffer in bytes; 0 selects the OS default.';
+
     /** @deprecated Java lower bound. Native socket.send.buffer.bytes has a lower bound of 0. */
     public const int SEND_BUFFER_LOWER_BOUND = -1;
 

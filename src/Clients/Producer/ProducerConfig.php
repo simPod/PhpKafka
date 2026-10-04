@@ -92,9 +92,7 @@ final class ProducerConfig extends Config
     /** @deprecated Unsupported Java key. No native sampling-count equivalent. */
     public const METRICS_NUM_SAMPLES_CONFIG = CommonClientConfigs::METRICS_NUM_SAMPLES_CONFIG;
 
-    /**
-     * @deprecated Unsupported Java key. No native metrics-recording-level equivalent.
-     */
+    /** @deprecated Unsupported Java key. No native metrics-recording-level equivalent. */
     public const METRICS_RECORDING_LEVEL_CONFIG = CommonClientConfigs::METRICS_RECORDING_LEVEL_CONFIG;
 
     /** @deprecated Unsupported Java key. Use statistics.interval.ms and RdKafka\Conf::setStatsCb(); no reporter-class equivalent. */
@@ -108,11 +106,13 @@ final class ProducerConfig extends Config
 
     /** @deprecated Unsupported Java key. No native serializer equivalent; serialize the key to bytes in PHP. */
     public const string KEY_SERIALIZER_CLASS_CONFIG = 'key.serializer';
+
     /** @deprecated No native serializer equivalent; serialize the key to bytes in PHP. */
     public const string KEY_SERIALIZER_CLASS_DOC = 'Java serializer classes are unsupported. Serialize the message key in application code.';
 
     /** @deprecated Unsupported Java key. No native serializer equivalent; serialize the payload to bytes in PHP. */
     public const string VALUE_SERIALIZER_CLASS_CONFIG = 'value.serializer';
+
     /** @deprecated No native serializer equivalent; serialize the payload to bytes in PHP. */
     public const string VALUE_SERIALIZER_CLASS_DOC = 'Java serializer classes are unsupported. Serialize the message payload in application code.';
 
@@ -127,6 +127,7 @@ final class ProducerConfig extends Config
 
     /** @deprecated Unsupported Java key. No PHP interceptor-class equivalent; handle messages in application code. */
     public const string INTERCEPTOR_CLASSES_CONFIG = 'interceptor.classes';
+
     /** @deprecated No PHP interceptor-class equivalent; handle messages in application code. */
     public const string INTERCEPTOR_CLASSES_DOC = 'Java interceptor classes are unsupported. Native C interceptors are not a PHP class configuration option.';
 
