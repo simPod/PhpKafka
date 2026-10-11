@@ -73,13 +73,18 @@ class KafkaProducerWrapper
 
     /**
      * Exceptions from application callbacks are caller-owned and propagate unchanged.
+     * Negative partitions and integer header keys are rejected before enqueue. Valid partitions with string-keyed
+     * or null headers do not throw InvalidArgumentException from validation.
      *
      * @param TPartition $partition
-     * @param array<string, string>|null $headers
+     * @param THeaders $headers
      *
      * @throws DeliveryFailed
-     * @throws (TPartition is int<min, -1> ? InvalidArgumentException : never) Negative partitions are invalid.
+     * @throws (TPartition is int<min, -1>
+     *     ? InvalidArgumentException
+     *     : (THeaders is array<string, string>|null ? never : InvalidArgumentException)) Invalid partition or header keys.
      *
+     * @template THeaders of array<array-key, string>|null
      * @template TPartition of int|null
      */
     public function produce(
@@ -96,6 +101,7 @@ class KafkaProducerWrapper
             );
         }
 
+        HeaderValidation::validate($headers);
         $this->deliveryFailureState->assertSuccessful();
 
         try {

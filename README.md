@@ -24,6 +24,12 @@ However, they are copied from Java API and not all are applicable to librdkafka.
 
 ### Producer
 
+#### Header names
+
+`produce()` accepts headers with string values, but every array key must remain a string in PHP. Numeric names such
+as `'123'` become integer array keys. `KafkaProducerWrapper` and the deprecated `KafkaProducer` reject these keys
+with `InvalidArgumentException` before enqueue, rather than sending a record with incomplete headers.
+
 #### Idempotence and delivery results
 
 These mechanisms answer different questions:
