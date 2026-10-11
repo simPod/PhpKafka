@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimPod\Kafka\Tests\Clients\Producer;
 
 use Generator;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RdKafka\Exception as RdKafkaException;
@@ -56,6 +57,36 @@ final class KafkaProducerWrapperTest extends TestCase
 
     /** @return Generator<string, array{string}> */
     public static function provideNativeFlushDoesNotHideDeliveryFailure(): Generator
+    {
+        yield 'wrapper' => ['wrapper'];
+        yield 'deprecated producer' => ['deprecated'];
+    }
+
+    #[DataProvider('provideProduceRejectsIntegerHeaderKeys')]
+    public function testProduceRejectsIntegerHeaderKeys(string $flavor): void
+    {
+        $config = self::createConfig();
+        $producer = $flavor === 'wrapper' ? new KafkaProducerWrapper($config) : new KafkaProducer($config);
+        $native = $producer instanceof KafkaProducerWrapper ? $producer->getProducer() : $producer;
+
+        try {
+            $producer->produce('invalid-headers', null, 'payload', headers: [
+                'before' => 'first',
+                '123' => 'invalid',
+                'after' => 'last',
+            ]);
+        } catch (InvalidArgumentException $exception) {
+            self::assertSame('Kafka header names must be string array keys.', $exception->getMessage());
+            self::assertSame(0, $native->getOutQLen());
+
+            return;
+        }
+
+        self::fail('Integer header keys must be rejected before enqueue.');
+    }
+
+    /** @phpstan-return Generator<string, array{string}> */
+    public static function provideProduceRejectsIntegerHeaderKeys(): Generator
     {
         yield 'wrapper' => ['wrapper'];
         yield 'deprecated producer' => ['deprecated'];
@@ -115,19 +146,20 @@ final class KafkaProducerWrapperTest extends TestCase
     public function testSuccessfulFlushDeliversAcknowledgedReports(): void
     {
         $config = self::createConfig('127.0.0.1:9092', 10000, 'all');
+        $headers = ['0123' => 'numeric-looking string key', 'trace-id' => 'trace-123'];
         $reports = [];
         $config->getConf()->setDrMsgCb(static function (Producer $producer, Message $message) use (&$reports): void {
             // phpcs:ignore Cdn77.NamingConventions.ValidVariableName -- Native RdKafka field name.
-            $reports[] = [$message->err, $message->topic_name, $message->payload];
+            $reports[] = [$message->err, $message->topic_name, $message->payload, $message->headers];
         });
         $producer = new KafkaProducerWrapper($config);
-        $producer->produce('acknowledged-delivery', 0, 'first');
+        $producer->produce('acknowledged-delivery', 0, 'first', headers: $headers);
         $producer->produce('acknowledged-delivery', 0, 'second');
         $producer->flushMessages(5000);
 
         self::assertSame([
-            [RD_KAFKA_RESP_ERR_NO_ERROR, 'acknowledged-delivery', 'first'],
-            [RD_KAFKA_RESP_ERR_NO_ERROR, 'acknowledged-delivery', 'second'],
+            [RD_KAFKA_RESP_ERR_NO_ERROR, 'acknowledged-delivery', 'first', $headers],
+            [RD_KAFKA_RESP_ERR_NO_ERROR, 'acknowledged-delivery', 'second', []],
         ], $reports);
         self::assertSame(0, $producer->getProducer()->getOutQLen());
     }
