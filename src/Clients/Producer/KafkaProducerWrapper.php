@@ -82,7 +82,7 @@ class KafkaProducerWrapper
      * @throws DeliveryFailed
      * @throws (TPartition is int<min, -1>
      *     ? InvalidArgumentException
-     *     : (THeaders is array<string, string>|null ? never : InvalidArgumentException))
+     *     : (THeaders is array<string, string>|null ? never : InvalidArgumentException)) Invalid partition or header keys.
      *
      * @template THeaders of array<array-key, string>|null
      * @template TPartition of int|null

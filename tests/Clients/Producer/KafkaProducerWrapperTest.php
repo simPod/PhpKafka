@@ -66,8 +66,11 @@ final class KafkaProducerWrapperTest extends TestCase
     public function testProduceRejectsIntegerHeaderKeys(string $flavor): void
     {
         $config = self::createConfig();
+        $reports = [];
+        $config->getConf()->setDrMsgCb(static function (Producer $producer, Message $message) use (&$reports): void {
+            $reports[] = $message->payload;
+        });
         $producer = $flavor === 'wrapper' ? new KafkaProducerWrapper($config) : new KafkaProducer($config);
-        $native = $producer instanceof KafkaProducerWrapper ? $producer->getProducer() : $producer;
 
         try {
             $producer->produce('invalid-headers', null, 'payload', headers: [
@@ -77,7 +80,8 @@ final class KafkaProducerWrapperTest extends TestCase
             ]);
         } catch (InvalidArgumentException $exception) {
             self::assertSame('Kafka header names must be string array keys.', $exception->getMessage());
-            self::assertSame(0, $native->getOutQLen());
+            $producer->flushMessages(5000);
+            self::assertSame([], $reports);
 
             return;
         }

@@ -21,9 +21,9 @@ final class HeaderValidation
      *
      * @param array<array-key, string>|null $headers
      *
-     * @phpstan-assert array<string, string>|null $headers
-     *
      * @throws InvalidArgumentException
+     *
+     * @phpstan-assert array<string, string>|null $headers
      */
     public static function validate(array|null $headers): void
     {
