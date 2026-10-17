@@ -5,6 +5,7 @@ parameters:
         - %currentWorkingDirectory%/tests
 
     stubFiles:
+        - tests/stubs/RdKafkaKafkaConsumer.php.stub
         - tests/stubs/RdKafkaMessage.php.stub
 
     scanFiles:

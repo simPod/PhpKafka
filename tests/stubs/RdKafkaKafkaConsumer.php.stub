@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+// Analysis-only return declarations for native topic-partition vectors.
+// Source: https://github.com/arnaud-lb/php-rdkafka/blob/6.x/kafka_consumer.c
+// kafka_topic_partition_list_to_array() emits a list of TopicPartition objects.
+
+namespace RdKafka;
+
+class KafkaConsumer
+{
+    /** @return list<TopicPartition> */
+    public function getAssignment(): array {}
+
+    /**
+     * @param array<array-key, TopicPartition> $topic_partitions
+     *
+     * @return list<TopicPartition>
+     */
+    public function getCommittedOffsets(array $topic_partitions, int $timeout_ms): array {}
+
+    /**
+     * @param array<array-key, TopicPartition> $topic_partitions
+     *
+     * @return list<TopicPartition>
+     */
+    public function getOffsetPositions(array $topic_partitions): array {}
+}

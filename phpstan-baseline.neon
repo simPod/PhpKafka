@@ -1,2 +1,12 @@
 parameters:
-    ignoreErrors: []
+    ignoreErrors:
+        # ext-rdkafka 6.x exposes these methods only on supported versions/builds.
+        # The full CI analyzer sees the current build, not every supported runtime.
+        -
+            message: '#^Call to function method_exists\(\) with ''RdKafka\\\\KafkaConsumer'' and ''incrementalAssign'' will always evaluate to true\.$#'
+            count: 1
+            path: src/Clients/Consumer/ConsumerRunner.php
+        -
+            message: '#^Call to function method_exists\(\) with ''RdKafka\\\\KafkaConsumer'' and ''incrementalAssign'' will always evaluate to true\.$#'
+            count: 2
+            path: tests/Clients/Consumer/ConsumerRunnerBrokerTest.php
