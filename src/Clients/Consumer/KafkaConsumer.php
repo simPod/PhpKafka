@@ -220,7 +220,7 @@ final class KafkaConsumer extends RdKafkaConsumer
             $onBatchProcessed,
             $consumerRecords,
         ): void {
-            $remainingTimeout = $batchTime->endMsTimestamp - (new DateTimeImmutable())->getTimestamp() * 1000;
+            $remainingTimeout = $batchTime->endMsTimestamp - new DateTimeImmutable()->getTimestamp() * 1000;
 
             if ($remainingTimeout >= 0) {
                 return;
